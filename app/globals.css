@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Colors */
+  --color-primary: #001B48;    /* Navy Blue */
+  --color-accent: #FF8200;     /* Orange */
+  
+  --color-background: #F4F7F9;
+  --color-foreground: #001B48;
+  
+  --font-sans: var(--font-poppins), system-ui, sans-serif;
+  --font-display: var(--font-montserrat), system-ui, sans-serif;
+
+  --animate-float: float 6s ease-in-out infinite;
+}
+
+/* Custom Keyframes */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* Base Styles */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+/* --- RECOVERED VISUAL IDENTITY --- */
+
+/* Custom Border Radius for that "Organic/Modern" feel */
+.rounded-4xl { border-radius: 2rem; }
+.rounded-5xl { border-radius: 3rem; }
+
+/* Gradients & Overlays */
+.bg-hero-glow {
+  background: radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+.card-overlay {
+  background: linear-gradient(to top, rgba(0, 27, 72, 0.9) 0%, rgba(0, 27, 72, 0.3) 60%, transparent 100%);
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(255, 130, 0, 0.3);
+}
+
+/* Utilities */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #2563EB 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

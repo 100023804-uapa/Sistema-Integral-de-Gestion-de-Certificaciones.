@@ -2,15 +2,19 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { GraduationCap, Loader2, AlertCircle } from 'lucide-react';
+import { GraduationCap, Loader2, AlertCircle, User, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
+
+type LoginRole = 'admin' | 'student';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [role, setRole] = useState<LoginRole>('admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,16 +27,34 @@ export default function LoginPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      // TODO: Here we should verify if the user matches the selected role (via Claims or DB check)
+      // For MVP, we allow access and redirect based on intention.
       router.push('/dashboard');
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setError('Credenciales incorrectas. Por favor verifica tu correo y contraseña.');
+        setError('Credenciales incorrectas. Verifique sus datos.');
       } else if (err.code === 'auth/too-many-requests') {
-        setError('Demasiados intentos fallidos. Intenta más tarde.');
+        setError('Demasiados intentos. Espere unos minutos.');
       } else {
-        setError('Ocurrió un error al iniciar sesión. Intenta nuevamente.');
+        setError('Error al iniciar sesión. Inténtelo de nuevo.');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    const provider = new GoogleAuthProvider();
+    
+    try {
+      await signInWithPopup(auth, provider);
+      router.push('/dashboard');
+    } catch (err: any) {
+      console.error(err);
+      setError('No se pudo iniciar sesión con Google.');
     } finally {
       setLoading(false);
     }
@@ -40,7 +62,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-3xl shadow-xl border border-gray-100 transition-all duration-300">
         
         {/* Logo & Header */}
         <div className="text-center space-y-2">
@@ -48,11 +70,39 @@ export default function LoginPage() {
             <GraduationCap size={40} />
           </div>
           <h2 className="text-3xl font-black text-primary tracking-tight">
-            Acceso Administrativo
+            Acceso SIGCE
           </h2>
           <p className="text-sm text-gray-500">
             Sistema Integral de Gestión de Certificaciones
           </p>
+        </div>
+
+        {/* Role Switcher */}
+        <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl">
+          <button
+            onClick={() => setRole('admin')}
+            className={cn(
+              "flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-200",
+              role === 'admin' 
+                ? "bg-white text-primary shadow-sm ring-1 ring-black/5" 
+                : "text-gray-500 hover:text-gray-700"
+            )}
+          >
+            <ShieldCheck size={16} />
+            Administrador
+          </button>
+          <button
+            onClick={() => setRole('student')}
+            className={cn(
+              "flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-200",
+              role === 'student' 
+                ? "bg-white text-primary shadow-sm ring-1 ring-black/5" 
+                : "text-gray-500 hover:text-gray-700"
+            )}
+          >
+            <User size={16} />
+            Participante
+          </button>
         </div>
 
         {/* Error Message */}
@@ -68,12 +118,12 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-1 ml-1">
-                Correo Electrónico
+                {role === 'admin' ? 'Correo Institucional' : 'Matrícula o Correo'}
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@uapa.edu.do"
+                placeholder={role === 'admin' ? "admin@sigce.edu.do" : "202X-XXXX"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -86,7 +136,7 @@ export default function LoginPage() {
                 <label htmlFor="password" className="block text-sm font-bold text-gray-700">
                   Contraseña
                 </label>
-                <Link href="#" className="text-xs font-medium text-accent hover:underline tabindex={-1}">
+                <Link href="#" className="text-xs font-medium text-accent hover:underline tabIndex={-1}">
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
@@ -104,7 +154,7 @@ export default function LoginPage() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 text-base font-bold rounded-xl shadow-lg shadow-primary/20"
+            className="w-full h-12 text-base font-bold rounded-xl shadow-lg shadow-orange-500/20"
             disabled={loading}
           >
             {loading ? (
@@ -113,14 +163,53 @@ export default function LoginPage() {
                 Iniciando...
               </>
             ) : (
-              'Ingresar al Sistema'
+                role === 'admin' ? 'Entrar como Admin' : 'Consultar Certificados'
             )}
+          </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-400 font-medium">
+                O continuar con
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full h-12 text-sm font-bold rounded-xl border-2 border-gray-100 hover:bg-gray-50 hover:border-gray-200 text-gray-700"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+          >
+            <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                fill="#4285F4"
+              />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                fill="#34A853"
+              />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                fill="#FBBC05"
+              />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                fill="#EA4335"
+              />
+            </svg>
+            Google
           </Button>
         </form>
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-400 mt-8">
-            &copy; {new Date().getFullYear()} UAPA - Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} sigce - Todos los derechos reservados.
         </div>
       </div>
     </div>

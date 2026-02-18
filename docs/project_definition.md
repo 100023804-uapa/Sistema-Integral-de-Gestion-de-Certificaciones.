@@ -1,13 +1,13 @@
 # Informe de Proyecto: Sistema Integral de Gestión de Certificaciones (SIGCE)
 
 **Fecha:** 18 de febrero de 2026  
-**Asignatura:** Proyecto Integrador – UAPA – Pasantía
+**Asignatura:** Proyecto Integrador – sigce – Pasantía
 
 ## 1. Resumen Ejecutivo
 El presente informe detalla la arquitectura, las especificaciones técnicas, el plan de trabajo por roles y la estrategia de continuidad para el desarrollo del **SIGCE**. El sistema permitirá la carga masiva de participantes, la generación de certificados con códigos QR de validación y la descarga instantánea desde un portal optimizado para dispositivos móviles (PWA). Se ha priorizado un modelo **Free‑First** para el MVP, utilizando servicios gratuitos que aseguren la entrega funcional para el **10 de abril de 2026**, al tiempo que se define un camino claro de migración hacia una infraestructura profesional y escalable.
 
 ## 2. Introducción
-El objetivo del proyecto es crear una plataforma que automatice la emisión y validación de certificados para los programas de **Capacitación (CAP)** y **Profundo** de la UAPA. La solución debe ser accesible desde cualquier dispositivo, garantizar la integridad de los datos y permitir un crecimiento futuro sin reescrituras mayores. 
+El objetivo del proyecto es crear una plataforma que automatice la emisión y validación de certificados para los programas de **Capacitación (CAP)** y **Profundo** de la sigce. La solución debe ser accesible desde cualquier dispositivo, garantizar la integridad de los datos y permitir un crecimiento futuro sin reescrituras mayores. 
 
 Las fases iniciales (I y II) se enfocan en la construcción de un **Producto Mínimo Viable (MVP)** que cumpla con los requisitos funcionales básicos y demuestre la viabilidad técnica del sistema.
 
@@ -34,7 +34,7 @@ La arquitectura propuesta para el MVP está compuesta por componentes que operan
     *   Selección de plantillas (CAP/Profundo).
     *   Gestión de usuarios y permisos.
 2.  **Módulo de Foliado**:
-    *   Generador de folios únicos: `UAPA-2026-CAP-0001`.
+    *   Generador de folios únicos: `sigce-2026-CAP-0001`.
     *   Control de secuencias anti-duplicados.
 3.  **Portal del Participante (PWA)**:
     *   Búsqueda optimizada para móviles.
@@ -88,4 +88,4 @@ El código se estructurará en capas concéntricas para asegurar calidad y mante
 *   [Equipo] Capacitación a personal CAP/Profundo.
 
 ## 8. Estrategia de Continuidad
-El diseño desacoplado permite que una futura migración (ej. a servidores propios de UAPA) solo requiera cambiar la capa de **Infraestructura** y **Adaptadores**, manteniendo intacta la **Lógica de Negocio** y el **Frontend**.
+El diseño desacoplado permite que una futura migración (ej. a servidores propios de sigce) solo requiera cambiar la capa de **Infraestructura** y **Adaptadores**, manteniendo intacta la **Lógica de Negocio** y el **Frontend**.

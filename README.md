@@ -4,7 +4,7 @@
 
 ## Documentación del Proyecto
 
-Este repositorio contiene el código fuente y la documentación para el **Proyecto Integrador (UAPA - Pasantía)**.
+Este repositorio contiene el código fuente y la documentación para el **Proyecto Integrador (sigce - Pasantía)**.
 
 📂 **[Ver Informe de Proyecto Detallado](./docs/project_definition.md)**  
 Consulte este documento para detalles sobre la arquitectura, especificaciones técnicas, roles y cronograma.
@@ -38,4 +38,4 @@ Guía de estilos, componentes y principios visuales.
 4.  **Ejecutar**: `pnpm dev`
 
 ---
-Desarrollado para UAPA - 2026.
+Desarrollado para sigce - 2026.

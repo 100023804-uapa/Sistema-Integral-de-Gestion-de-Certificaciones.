@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: 'SIGCE - Sistema Integral de Gestión de Certificaciones',
   description: 'Plataforma de gestión de certificaciones',
   icons: {
-    icon: '/icon.png',
+    icon: '/icon.svg',
   },
 };
 

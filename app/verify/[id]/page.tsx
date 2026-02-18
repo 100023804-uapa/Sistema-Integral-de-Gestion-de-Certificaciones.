@@ -37,7 +37,7 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
             
             <div className="flex justify-center mb-6">
                {/* Placeholder for Logo */}
-               <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs">Logo UAPA</div>
+               <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs">Logo sigce</div>
             </div>
 
             <div className="space-y-6">

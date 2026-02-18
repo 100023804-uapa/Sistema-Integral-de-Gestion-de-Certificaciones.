@@ -11,7 +11,7 @@ export async function seedDatabase() {
 
         // Add mock certificates
         await addDoc(certificatesRef, {
-            folio: "UAPA-TEST-001",
+            folio: "sigce-TEST-001",
             status: "active",
             createdAt: Timestamp.now(),
             studentName: "Juan Perez",
@@ -19,7 +19,7 @@ export async function seedDatabase() {
         });
 
         await addDoc(certificatesRef, {
-            folio: "UAPA-TEST-002",
+            folio: "sigce-TEST-002",
             status: "active",
             createdAt: Timestamp.now(),
             studentName: "Maria Garcia",

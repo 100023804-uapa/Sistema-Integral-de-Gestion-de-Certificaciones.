@@ -22,12 +22,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("AuthProvider: Initializing...");
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("AuthProvider: Auth state changed", user ? `User: ${user.email}` : "No user");
       setUser(user);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Timeout de seguridad en caso de que Firebase tarde mucho
+    const timeout = setTimeout(() => {
+        if (loading) {
+            console.warn("AuthProvider: Loading timeout reached (10s). Forcing loading to false.");
+            setLoading(false);
+        }
+    }, 10000);
+
+    return () => {
+        unsubscribe();
+        clearTimeout(timeout);
+    };
   }, []);
 
   return (

@@ -25,14 +25,36 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchStats = async () => {
-      const useCase = new GetDashboardStats();
-      const data = await useCase.execute();
-      setStats(data);
-      setLoading(false);
+      try {
+        console.log("DashboardPage: Fetching stats...");
+        const useCase = new GetDashboardStats();
+        const data = await useCase.execute();
+        if (isMounted) {
+            console.log("DashboardPage: Stats received", data);
+            setStats(data);
+            setLoading(false);
+        }
+      } catch (error) {
+        console.error("DashboardPage: Error fetching stats", error);
+        if (isMounted) {
+            setLoading(false); // Deja de cargar aunque falle
+        }
+      }
     };
 
     fetchStats();
+
+    // Timeout de seguridad para datos
+    const timeout = setTimeout(() => {
+        if (isMounted && loading) {
+            console.warn("DashboardPage: Timeout loading stats. Showing empty.");
+            setLoading(false);
+        }
+    }, 5000);
+
+    return () => { isMounted = false; clearTimeout(timeout); };
   }, []);
 
   if (loading) {
@@ -51,7 +73,7 @@ export default function DashboardPage() {
         <div>
           <p className="text-gray-500 font-medium mb-1">Bienvenido de nuevo,</p>
           <h1 className="text-3xl md:text-5xl font-black text-primary tracking-tighter">
-            Admin UAPA
+            Admin sigce
           </h1>
         </div>
         <div className="flex items-center gap-4">

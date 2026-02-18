@@ -3,7 +3,7 @@ export type CertificateType = 'CAP' | 'PROFUNDO';
 
 export interface Certificate {
   id: string; // UUID interno
-  folio: string; // Código único visible (e.g., UAPA-2026-CAP-0001)
+  folio: string; // Código único visible (e.g., sigce-2026-CAP-0001)
   studentId: string; // Relación con Student
   studentName: string; // Desnormalizado para consultas rápidas
   type: CertificateType;

@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import {Montserrat, Poppins} from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/lib/contexts/AuthContext';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -25,7 +26,11 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="es" className={`${montserrat.variable} ${poppins.variable}`}>
-      <body suppressHydrationWarning>{children}</body>
+      <body className={`${montserrat.variable} ${poppins.variable}`} suppressHydrationWarning>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

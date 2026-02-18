@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   FileText, 
@@ -21,6 +22,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { GetDashboardStats, DashboardStats } from '@/lib/application/use-cases/GetDashboardStats';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -137,10 +139,26 @@ export default function DashboardPage() {
           Acciones Rápidas
         </h2>
         <div className="flex flex-wrap gap-4 md:gap-8 justify-between">
-          <QuickAction label="Nuevo Certificado" icon={PlusCircle} />
-          <QuickAction label="Validar QR" icon={QrCode} />
-          <QuickAction label="Ver Reportes" icon={BarChart3} />
-          <QuickAction label="Gestión Usuarios" icon={Users} />
+          <QuickAction 
+            label="Nuevo Certificado" 
+            icon={PlusCircle} 
+            onClick={() => router.push('/dashboard/certificates/create')}
+          />
+          <QuickAction 
+            label="Validar QR" 
+            icon={QrCode} 
+            onClick={() => router.push('/dashboard/validate')}
+          />
+          <QuickAction 
+            label="Ver Reportes" 
+            icon={BarChart3} 
+            onClick={() => router.push('/dashboard/reports')}
+          />
+          <QuickAction 
+            label="Gestión Usuarios" 
+            icon={Users} 
+            onClick={() => router.push('/dashboard/users')}
+          />
           {/* TEMP: Botón para sembrar datos */}
           <button 
             onClick={async () => {

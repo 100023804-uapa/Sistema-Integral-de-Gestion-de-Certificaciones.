@@ -1,8 +1,12 @@
 export interface Student {
-  id: string;
+  id: string; // Matrícula o Cédula (Identificador único)
   firstName: string;
   lastName: string;
   email: string;
-  enrollmentId: string; // Matrícula
-  certificates: string[]; // IDs of certificates
+  phone?: string;
+  career?: string; // Carrera o Departamento
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+export type CreateStudentDTO = Omit<Student, 'id' | 'createdAt' | 'updatedAt'> & { id: string };

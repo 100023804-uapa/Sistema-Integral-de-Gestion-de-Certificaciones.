@@ -46,7 +46,7 @@ export default function LandingPage() {
               </h1>
               
               <p className="text-xl md:text-2xl font-medium mb-10 text-blue-100 max-w-xl leading-relaxed">
-                Gestión integral de certificaciones académicas con seguridad blockchain y verificación instantánea.
+                Gestión integral de certificaciones académicas con seguridad y verificación instantánea.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">

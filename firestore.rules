@@ -1,18 +1,48 @@
-rules_version='2'
+﻿rules_version='2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Public verification flow relies on read access to certificates.
+    match /certificates/{certificateId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    match /students/{studentId} {
+      allow read, create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    match /templates/{templateId} {
+      allow read, create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    match /program_stats/{programId} {
+      allow read, create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    match /folio_counters/{counterId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /access_users/{userId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    match /programs/{programId} {
+      allow read, create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2026, 3, 20);
+      allow read, write: if false;
     }
   }
 }

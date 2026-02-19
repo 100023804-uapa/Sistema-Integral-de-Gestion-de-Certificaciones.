@@ -1,4 +1,4 @@
-import { ICertificateRepository } from '../../domain/repositories/CertificateRepository';
+import { ICertificateRepository } from '../../domain/repositories/ICertificateRepository';
 import { GenerateFolio } from './GenerateFolio';
 import { Certificate, CertificateType, CertificateStatus, CreateCertificateDTO } from '../../domain/entities/Certificate';
 import { IStudentRepository } from '../../domain/repositories/IStudentRepository';

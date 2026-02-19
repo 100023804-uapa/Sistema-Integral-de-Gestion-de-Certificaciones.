@@ -116,7 +116,7 @@ export default function SeedTemplatePage() {
             <div className="flex-1 flex flex-col items-center justify-center p-8">
                 <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md w-full">
                     <h1 className="text-2xl font-bold mb-4">Inicializar Plantillas</h1>
-                    <p className="text-gray-600 mb-6">Crea la plantilla base "Predeterminada" en la base de datos para que sea editable.</p>
+                    <p className="text-gray-600 mb-6">Crea la plantilla base &quot;Predeterminada&quot; en la base de datos para que sea editable.</p>
                     
                     {message && (
                         <div className={`p-4 rounded-lg mb-4 text-sm font-medium ${message.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>

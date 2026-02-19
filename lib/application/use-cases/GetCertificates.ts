@@ -1,4 +1,4 @@
-import { ICertificateRepository } from '../../domain/repositories/CertificateRepository';
+import { ICertificateRepository } from '../../domain/repositories/ICertificateRepository';
 import { Certificate } from '../../domain/entities/Certificate';
 
 export class GetCertificates {

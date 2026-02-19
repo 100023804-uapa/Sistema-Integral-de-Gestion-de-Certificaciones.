@@ -1,0 +1,95 @@
+import { db } from '@/lib/firebase';
+import {
+    collection,
+    deleteDoc,
+    doc,
+    getCountFromServer,
+    getDoc,
+    getDocs,
+    orderBy,
+    query,
+    serverTimestamp,
+    setDoc,
+} from 'firebase/firestore';
+
+const COLLECTION_NAME = 'access_users';
+
+export interface AccessUser {
+    id: string;
+    email: string;
+    role: 'admin';
+    createdAt: Date | null;
+    createdBy?: string;
+    updatedAt: Date | null;
+}
+
+export class FirebaseAccessRepository {
+    private normalizeEmail(email: string): string {
+        return email.trim().toLowerCase();
+    }
+
+    private toEntity(docSnap: any): AccessUser {
+        const data = docSnap.data();
+        return {
+            id: docSnap.id,
+            email: data.email,
+            role: 'admin',
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null,
+            createdBy: data.createdBy,
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : null,
+        };
+    }
+
+    async hasAdminAccess(email?: string | null): Promise<boolean> {
+        if (!email) return false;
+
+        const normalized = this.normalizeEmail(email);
+        const snap = await getDoc(doc(db, COLLECTION_NAME, normalized));
+        return snap.exists() && snap.data().role === 'admin' && snap.data().disabled !== true;
+    }
+
+    async ensureBootstrapAdmin(user: { uid: string; email?: string | null }): Promise<boolean> {
+        if (!user.email) return false;
+
+        const normalized = this.normalizeEmail(user.email);
+        const existing = await getDoc(doc(db, COLLECTION_NAME, normalized));
+        if (existing.exists()) return true;
+
+        const total = await getCountFromServer(collection(db, COLLECTION_NAME));
+        if (total.data().count > 0) return false;
+
+        await setDoc(doc(db, COLLECTION_NAME, normalized), {
+            email: normalized,
+            role: 'admin',
+            createdBy: user.uid,
+            bootstrapped: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+
+        return true;
+    }
+
+    async listAdmins(): Promise<AccessUser[]> {
+        const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((item) => this.toEntity(item));
+    }
+
+    async upsertAdmin(email: string, actorId: string): Promise<void> {
+        const normalized = this.normalizeEmail(email);
+        await setDoc(doc(db, COLLECTION_NAME, normalized), {
+            email: normalized,
+            role: 'admin',
+            createdBy: actorId,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            disabled: false,
+        }, { merge: true });
+    }
+
+    async removeAdmin(email: string): Promise<void> {
+        const normalized = this.normalizeEmail(email);
+        await deleteDoc(doc(db, COLLECTION_NAME, normalized));
+    }
+}

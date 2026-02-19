@@ -1,9 +1,37 @@
-import { db } from '@/lib/firebase';
-import { collection, addDoc, doc, getDoc, updateDoc, query, where, getCountFromServer, limit, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+﻿import { db } from '@/lib/firebase';
+import {
+    addDoc,
+    collection,
+    doc,
+    getCountFromServer,
+    getDoc,
+    getDocs,
+    increment,
+    limit,
+    orderBy,
+    query,
+    runTransaction,
+    setDoc,
+    Timestamp,
+    updateDoc,
+    where,
+} from 'firebase/firestore';
 import { Certificate, CertificateType, CreateCertificateDTO } from '../../domain/entities/Certificate';
 import { ICertificateRepository } from '../../domain/repositories/ICertificateRepository';
 
 const COLLECTION_NAME = 'certificates';
+const COUNTERS_COLLECTION = 'folio_counters';
+const PROGRAM_STATS_COLLECTION = 'program_stats';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://sigce.app';
+
+export interface ProgramStat {
+    id: string;
+    name: string;
+    certificateCount: number;
+    lastIssued: Date | null;
+    type: CertificateType | null;
+}
 
 export class FirebaseCertificateRepository implements ICertificateRepository {
 
@@ -12,20 +40,24 @@ export class FirebaseCertificateRepository implements ICertificateRepository {
     }
 
     async save(data: CreateCertificateDTO): Promise<Certificate> {
+        const qrCodeUrl = `${APP_URL}/verify/${data.folio}`;
         const certificateData = {
             ...data,
+            qrCodeUrl,
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
-            // Ensure dates are stored as Timestamps
             issueDate: Timestamp.fromDate(new Date(data.issueDate)),
             expirationDate: data.expirationDate ? Timestamp.fromDate(new Date(data.expirationDate)) : null,
         };
 
         const docRef = await addDoc(collection(db, COLLECTION_NAME), certificateData);
 
+        await this.upsertProgramStats(data);
+
         return {
             id: docRef.id,
             ...data,
+            qrCodeUrl,
             createdAt: new Date(),
             updatedAt: new Date(),
         } as Certificate;
@@ -37,13 +69,13 @@ export class FirebaseCertificateRepository implements ICertificateRepository {
 
         if (docSnap.exists()) {
             return this.mapDocToEntity(docSnap);
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     async findByFolio(folio: string): Promise<Certificate | null> {
-        const q = query(collection(db, COLLECTION_NAME), where("folio", "==", folio), limit(1));
+        const q = query(collection(db, COLLECTION_NAME), where('folio', '==', folio), limit(1));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
@@ -54,60 +86,121 @@ export class FirebaseCertificateRepository implements ICertificateRepository {
     }
 
     async findByStudentId(studentId: string): Promise<Certificate[]> {
-        const q = query(collection(db, COLLECTION_NAME), where("studentId", "==", studentId));
+        const q = query(collection(db, COLLECTION_NAME), where('studentId', '==', studentId));
         const querySnapshot = await getDocs(q);
 
-        return querySnapshot.docs.map(doc => this.mapDocToEntity(doc));
+        return querySnapshot.docs.map((item) => this.mapDocToEntity(item));
     }
 
     async countByYearAndType(year: number, type: CertificateType): Promise<number> {
-        // This is a simplified count. For production with high volume, consider distributed counters or aggregation queries.
-        // Assuming folio structure contains year and type, or we filter by date range.
-        // Here we filter by issueDate range for the year AND type field.
-
         const startOfYear = new Date(year, 0, 1);
         const endOfYear = new Date(year, 11, 31, 23, 59, 59);
 
         const q = query(
             collection(db, COLLECTION_NAME),
-            where("type", "==", type),
-            where("issueDate", ">=", Timestamp.fromDate(startOfYear)),
-            where("issueDate", "<=", Timestamp.fromDate(endOfYear))
+            where('type', '==', type),
+            where('issueDate', '>=', Timestamp.fromDate(startOfYear)),
+            where('issueDate', '<=', Timestamp.fromDate(endOfYear))
         );
 
         const snapshot = await getCountFromServer(q);
         return snapshot.data().count;
     }
 
+    async reserveNextSequence(year: number, type: CertificateType, prefix: string = 'sigce'): Promise<number> {
+        const normalizedPrefix = prefix.toLowerCase().trim();
+        const counterId = `${normalizedPrefix}_${year}_${type}`;
+        const counterRef = doc(db, COUNTERS_COLLECTION, counterId);
+
+        return runTransaction(db, async (transaction) => {
+            const snapshot = await transaction.get(counterRef);
+            const current = snapshot.exists() ? Number(snapshot.data().current || 0) : 0;
+            const next = current + 1;
+
+            transaction.set(counterRef, {
+                prefix: normalizedPrefix,
+                year,
+                type,
+                current: next,
+                updatedAt: Timestamp.now(),
+                createdAt: snapshot.exists() ? snapshot.data().createdAt || Timestamp.now() : Timestamp.now(),
+            }, { merge: true });
+
+            return next;
+        });
+    }
+
     async list(limitCount: number = 20): Promise<Certificate[]> {
-        const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"), limit(limitCount));
+        const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'), limit(limitCount));
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => this.mapDocToEntity(doc));
+        return querySnapshot.docs.map((item) => this.mapDocToEntity(item));
     }
 
     async findAll(): Promise<Certificate[]> {
-        const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
+        const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => this.mapDocToEntity(doc));
+        return querySnapshot.docs.map((item) => this.mapDocToEntity(item));
+    }
+
+    async getProgramStats(limitCount: number = 100): Promise<ProgramStat[]> {
+        const q = query(
+            collection(db, PROGRAM_STATS_COLLECTION),
+            orderBy('certificateCount', 'desc'),
+            limit(limitCount)
+        );
+        const querySnapshot = await getDocs(q);
+
+        return querySnapshot.docs.map((item) => {
+            const data = item.data();
+            return {
+                id: item.id,
+                name: data.name || item.id,
+                certificateCount: Number(data.certificateCount || 0),
+                lastIssued: data.lastIssued?.toDate ? data.lastIssued.toDate() : null,
+                type: (data.type as CertificateType) || null,
+            };
+        });
     }
 
     async updateStatus(id: string, status: Certificate['status']): Promise<void> {
         const docRef = doc(db, COLLECTION_NAME, id);
         await updateDoc(docRef, {
             status,
-            updatedAt: Timestamp.now()
+            updatedAt: Timestamp.now(),
         });
     }
 
-    private mapDocToEntity(doc: any): Certificate {
-        const data = doc.data();
+    private async upsertProgramStats(data: CreateCertificateDTO): Promise<void> {
+        const programKey = this.toProgramKey(data.academicProgram);
+        const statRef = doc(db, PROGRAM_STATS_COLLECTION, programKey);
+
+        await setDoc(statRef, {
+            name: data.academicProgram,
+            type: data.type,
+            certificateCount: increment(1),
+            lastIssued: Timestamp.fromDate(new Date(data.issueDate)),
+            updatedAt: Timestamp.now(),
+        }, { merge: true });
+    }
+
+    private toProgramKey(programName: string): string {
+        const normalized = (programName || 'sin_programa').trim().toLowerCase();
+        return normalized
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '')
+            .slice(0, 96) || 'sin_programa';
+    }
+
+    private mapDocToEntity(docSnap: any): Certificate {
+        const data = docSnap.data();
         return {
-            id: doc.id,
+            id: docSnap.id,
             ...data,
-            issueDate: data.issueDate?.toDate(),
-            expirationDate: data.expirationDate?.toDate(),
-            createdAt: data.createdAt?.toDate(),
-            updatedAt: data.updatedAt?.toDate(),
+            qrCodeUrl: data.qrCodeUrl || `${APP_URL}/verify/${data.folio}`,
+            issueDate: data.issueDate?.toDate ? data.issueDate.toDate() : new Date(data.issueDate),
+            expirationDate: data.expirationDate?.toDate ? data.expirationDate.toDate() : (data.expirationDate ? new Date(data.expirationDate) : undefined),
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt || Date.now()),
         } as Certificate;
     }
 }

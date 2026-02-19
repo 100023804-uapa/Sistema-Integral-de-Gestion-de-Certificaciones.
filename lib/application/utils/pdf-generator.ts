@@ -59,7 +59,7 @@ export const generateCertificatePDF = async (certificate: Certificate, template?
         }
     } else {
         // 4. Fallback Default Layout (If no template selected)
-        renderDefaultLayout(doc, certificate, width, height);
+        await renderDefaultLayout(doc, certificate, width, height);
     }
 
     return doc.output('blob');
@@ -88,22 +88,26 @@ const loadImage = (url: string): Promise<HTMLImageElement> => {
 
 const renderDefaultLayout = async (doc: jsPDF, cert: Certificate, w: number, h: number) => {
     // Simple Classic Design
-    // Simple Classic Design
     try {
+        // Use window.location.origin to ensure absolute path if needed, though relative usually works
         const logoUrl = '/logo de la uapa.jpeg';
         const img = await loadImage(logoUrl);
+
         // Centered logo at top
         const logoWidth = 40;
-        const logoHeight = 40; // Assuming square or similar aspect ratio
+        const logoHeight = 40;
         const x = (w - logoWidth) / 2;
         doc.addImage(img, 'JPEG', x, 20, logoWidth, logoHeight);
     } catch (e) {
-        console.error("Error loading default logo", e);
+        console.error("Error loading default logo for PDF", e);
+        // Continue rendering text even if logo fails
     }
+
+    doc.setTextColor(0, 0, 0); // Force black
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(30);
-    doc.text("CERTIFICADO DE RECONOCIMIENTO", w / 2, 70, { align: "center" }); // Moved down slightly
+    doc.text("CERTIFICADO DE RECONOCIMIENTO", w / 2, 70, { align: "center" });
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(16);
@@ -111,20 +115,25 @@ const renderDefaultLayout = async (doc: jsPDF, cert: Certificate, w: number, h: 
 
     doc.setFont("times", "bolditalic");
     doc.setFontSize(40);
-    doc.text(cert.studentName, w / 2, 100, { align: "center" });
+    doc.text(cert.studentName, w / 2, 105, { align: "center" });
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(16);
-    doc.text(`Por haber concluido satisfactoriamente el programa:`, w / 2, 120, { align: "center" });
+    doc.text(`Por haber concluido satisfactoriamente el programa:`, w / 2, 125, { align: "center" });
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.text(cert.academicProgram, w / 2, 135, { align: "center" });
+    // Split long program names
+    const splitTitle = doc.splitTextToSize(cert.academicProgram, w - 40);
+    doc.text(splitTitle, w / 2, 140, { align: "center" });
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(`Fecha de emisión: ${new Date(cert.issueDate).toLocaleDateString()}`, w / 2, 160, { align: "center" });
-    doc.text(`Folio: ${cert.folio}`, w / 2, 166, { align: "center" });
+    // Layout dynamic entry after program name
+    let yPos = 140 + (splitTitle.length * 10);
+
+    doc.text(`Fecha de emisión: ${new Date(cert.issueDate).toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' })}`, w / 2, yPos + 10, { align: "center" });
+    doc.text(`Folio: ${cert.folio}`, w / 2, yPos + 16, { align: "center" });
 
     // QR
     try {

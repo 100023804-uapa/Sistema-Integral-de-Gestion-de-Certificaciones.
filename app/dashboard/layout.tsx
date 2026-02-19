@@ -6,22 +6,54 @@ import { Sidebar } from '@/components/dashboard/Sidebar';
 import { BottomNav } from '@/components/dashboard/BottomNav';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { FirebaseAccessRepository } from '@/lib/infrastructure/repositories/FirebaseAccessRepository';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const [authorized, setAuthorized] = React.useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
+    let isActive = true;
 
-  if (loading) {
+    const validateAccess = async () => {
+      if (loading) return;
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      try {
+        const accessRepo = new FirebaseAccessRepository();
+        const hasAccess = await accessRepo.hasAdminAccess(user.email);
+
+        if (!hasAccess) {
+          await logout();
+          if (isActive) router.push('/login');
+          return;
+        }
+
+        if (isActive) setAuthorized(true);
+      } catch (error) {
+        console.error('Error validating dashboard access:', error);
+        await logout();
+        if (isActive) router.push('/login');
+      }
+    };
+
+    void validateAccess();
+
+    return () => {
+      isActive = false;
+    };
+  }, [user, loading, logout, router]);
+
+  if (loading || (user && !authorized)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />

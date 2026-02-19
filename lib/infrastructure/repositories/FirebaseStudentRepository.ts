@@ -62,6 +62,7 @@ export class FirebaseStudentRepository implements IStudentRepository {
             firstName: data.firstName,
             lastName: data.lastName,
             email: data.email,
+            cedula: data.cedula,
             phone: data.phone,
             career: data.career,
             createdAt: data.createdAt?.toDate() || new Date(),

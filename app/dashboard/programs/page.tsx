@@ -1,105 +1,98 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Loader2, GraduationCap, Award, Search, BookOpen, AlertCircle } from 'lucide-react';
-import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
-import { Certificate } from '@/lib/domain/entities/Certificate';
+import { FirebaseCertificateRepository, ProgramStat } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
 
 const certRepo = new FirebaseCertificateRepository();
 
-interface ProgramStats {
+interface ProgramCardData {
     name: string;
     count: number;
-    lastIssued: Date;
-    students: Set<string>; // Set of student IDs to count unique students
-    type: string; // 'CAP' or 'PROFUNDO' (takes the most frequent or latest)
+    lastIssued: Date | null;
+    type: string;
 }
 
 export default function ProgramsPage() {
-    const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [programs, setPrograms] = useState<ProgramStats[]>([]);
+    const [programs, setPrograms] = useState<ProgramCardData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        loadPrograms();
+        void loadPrograms();
     }, []);
 
     const loadPrograms = async () => {
         try {
             setLoading(true);
-            // In a real scalability scenario, fetching ALL certificates is bad.
-            // But for now (<1000 certs), it's the only way to aggregate without a dedicated collection.
-            const allCerts = await certRepo.findAll();
-            
-            const statsMap = new Map<string, ProgramStats>();
 
-            allCerts.forEach(cert => {
-                const programName = cert.academicProgram?.trim();
-                if (!programName) return;
+            const stats = await certRepo.getProgramStats(100);
+            if (stats.length > 0) {
+                setPrograms(stats.map(toCardData));
+                return;
+            }
 
-                if (!statsMap.has(programName)) {
-                    statsMap.set(programName, {
-                        name: programName,
+            // Backward-compatible fallback: aggregate from recent certificates only.
+            const recent = await certRepo.list(500);
+            const map = new Map<string, ProgramCardData>();
+
+            recent.forEach((cert) => {
+                const key = cert.academicProgram?.trim();
+                if (!key) return;
+
+                if (!map.has(key)) {
+                    map.set(key, {
+                        name: key,
                         count: 0,
-                        lastIssued: new Date(0), // Epoch
-                        students: new Set(),
-                        type: cert.type
+                        lastIssued: cert.issueDate,
+                        type: cert.type,
                     });
                 }
 
-                const stats = statsMap.get(programName)!;
-                stats.count++;
-                stats.students.add(cert.studentId);
-                
-                // Keep track of latest issue date
-                if (cert.issueDate > stats.lastIssued) {
-                    stats.lastIssued = cert.issueDate;
+                const current = map.get(key)!;
+                current.count += 1;
+                if (!current.lastIssued || cert.issueDate > current.lastIssued) {
+                    current.lastIssued = cert.issueDate;
                 }
             });
 
-            // Convert to array and sort by count desc
-            const programsArray = Array.from(statsMap.values()).sort((a, b) => b.count - a.count);
-            setPrograms(programsArray);
-
+            const fallback = Array.from(map.values()).sort((a, b) => b.count - a.count);
+            setPrograms(fallback);
         } catch (error) {
-            console.error("Error loading programs:", error);
+            console.error('Error loading programs:', error);
+            setPrograms([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const filteredPrograms = programs.filter(p => 
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredPrograms = programs.filter((program) =>
+        program.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <div className="px-4 py-8 md:px-8 md:py-12 space-y-8 animate-in fade-in zoom-in duration-500">
-            {/* Header */}
             <div>
                 <h1 className="text-3xl font-black text-primary tracking-tighter flex items-center gap-3">
                     <BookOpen className="w-8 h-8" />
-                    Programas Académicos
+                    Programas Academicos
                 </h1>
                 <p className="text-gray-500 mt-2">
-                    Vista general de todos los programas impartidos y sus estadísticas.
+                    Vista general de los programas con emision registrada.
                 </p>
             </div>
 
-            {/* Search */}
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 max-w-md">
                 <Search className="text-gray-400 w-5 h-5" />
-                <input 
-                    type="text" 
-                    placeholder="Buscar programa..." 
+                <input
+                    type="text"
+                    placeholder="Buscar programa..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-transparent focus:outline-none text-gray-700 placeholder:text-gray-400"
                 />
             </div>
 
-            {/* Content */}
             {loading ? (
                 <div className="flex flex-col items-center justify-center h-64">
                     <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
@@ -132,26 +125,19 @@ export default function ProgramsPage() {
                                         {program.type}
                                     </span>
                                 </div>
-                                
+
                                 <h3 className="font-bold text-gray-800 text-lg mb-2 leading-tight">
                                     {program.name}
                                 </h3>
 
-                                <div className="flex items-center gap-4 mt-6 text-sm">
-                                    <div className="flex flex-col">
-                                        <span className="text-gray-400 text-xs font-medium uppercase">Certificados</span>
-                                        <span className="font-black text-2xl text-primary">{program.count}</span>
-                                    </div>
-                                    <div className="w-px h-8 bg-gray-100"></div>
-                                    <div className="flex flex-col">
-                                        <span className="text-gray-400 text-xs font-medium uppercase">Estudiantes</span>
-                                        <span className="font-bold text-xl text-gray-700">{program.students.size}</span>
-                                    </div>
+                                <div className="mt-6 text-sm">
+                                    <span className="text-gray-400 text-xs font-medium uppercase">Certificados</span>
+                                    <div className="font-black text-2xl text-primary">{program.count}</div>
                                 </div>
 
                                 <div className="mt-4 pt-4 border-t border-gray-50 flex items-center gap-2 text-xs text-gray-400">
                                     <span className="w-2 h-2 rounded-full bg-green-400"></span>
-                                    Última emisión: {program.lastIssued.toLocaleDateString()}
+                                    Ultima emision: {program.lastIssued ? program.lastIssued.toLocaleDateString() : 'N/A'}
                                 </div>
                             </div>
                         </div>
@@ -160,4 +146,13 @@ export default function ProgramsPage() {
             )}
         </div>
     );
+}
+
+function toCardData(stat: ProgramStat): ProgramCardData {
+    return {
+        name: stat.name,
+        count: stat.certificateCount,
+        lastIssued: stat.lastIssued,
+        type: stat.type || 'CAP',
+    };
 }

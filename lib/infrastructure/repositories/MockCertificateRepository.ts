@@ -1,5 +1,5 @@
 import { Certificate, CreateCertificateDTO, CertificateStatus } from '../../domain/entities/Certificate';
-import { ICertificateRepository } from '../../domain/repositories/CertificateRepository';
+import { ICertificateRepository } from '../../domain/repositories/ICertificateRepository';
 
 export class MockCertificateRepository implements ICertificateRepository {
   private certificates: Certificate[] = [
@@ -66,6 +66,10 @@ export class MockCertificateRepository implements ICertificateRepository {
 
   async findByStudentId(studentId: string): Promise<Certificate[]> {
     return this.certificates.filter((c) => c.studentId === studentId);
+  }
+
+  async save(data: CreateCertificateDTO): Promise<Certificate> {
+    return this.create(data);
   }
 
   async create(data: CreateCertificateDTO): Promise<Certificate> {

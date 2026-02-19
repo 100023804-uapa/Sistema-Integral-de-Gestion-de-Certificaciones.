@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
@@ -17,6 +17,17 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
 });
 
+const SESSION_COOKIE = 'session';
+
+function setSessionCookie() {
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${SESSION_COOKIE}=1; Path=/; Max-Age=43200; SameSite=Lax${secure}`;
+}
+
+function clearSessionCookie() {
+  document.cookie = `${SESSION_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+}
+
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -24,32 +35,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("AuthProvider: Initializing...");
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("AuthProvider: Auth state changed", user ? `User: ${user.email}` : "No user");
-      setUser(user);
+    let settled = false;
+
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      settled = true;
+      setUser(authUser);
       setLoading(false);
+
+      if (authUser) {
+        setSessionCookie();
+      } else {
+        clearSessionCookie();
+      }
     });
 
-    // Timeout de seguridad en caso de que Firebase tarde mucho
     const timeout = setTimeout(() => {
-        if (loading) {
-            console.warn("AuthProvider: Loading timeout reached (10s). Forcing loading to false.");
-            setLoading(false);
-        }
+      if (!settled) {
+        setLoading(false);
+      }
     }, 10000);
 
     return () => {
-        unsubscribe();
-        clearTimeout(timeout);
+      unsubscribe();
+      clearTimeout(timeout);
     };
   }, []);
 
   const logout = async () => {
     try {
       await signOut(auth);
+      clearSessionCookie();
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error('Error signing out:', error);
       throw error;
     }
   };

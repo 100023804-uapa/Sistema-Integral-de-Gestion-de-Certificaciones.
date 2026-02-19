@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, UserCredential } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -11,17 +11,45 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { APP_VERSION } from '@/lib/config/changelog';
 import { ChangelogModal } from '@/components/ui/ChangelogModal';
+import { FirebaseAccessRepository } from '@/lib/infrastructure/repositories/FirebaseAccessRepository';
 
 type LoginRole = 'admin' | 'student';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const accessRepo = new FirebaseAccessRepository();
   const [role, setRole] = useState<LoginRole>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+
+  const setSessionCookie = () => {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `session=1; Path=/; Max-Age=43200; SameSite=Lax${secure}`;
+  };
+
+  const getRedirectPath = () => {
+    const nextPath = searchParams.get('next');
+    if (!nextPath || !nextPath.startsWith('/')) return '/dashboard';
+    return nextPath;
+  };
+
+  const ensureAdminAccess = async (credential: UserCredential) => {
+    const user = credential.user;
+    const bootstrapped = await accessRepo.ensureBootstrapAdmin({ uid: user.uid, email: user.email });
+    if (bootstrapped) return;
+
+    const authorized = await accessRepo.hasAdminAccess(user.email);
+    if (!authorized) {
+      await signOut(auth);
+      const authError = new Error('No autorizado');
+      (authError as any).code = 'auth/not-authorized';
+      throw authError;
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,9 +58,9 @@ export default function LoginPage() {
 
     try {
       if (role === 'student') {
-        // Para participantes, redirigimos a la consulta pública
+        // Para participantes, redirigimos a la consulta pÃºblica
         if (!email.trim()) {
-           setError('Por favor ingrese una matrícula, cédula o folio válido.');
+           setError('Por favor ingrese una matrÃ­cula, cÃ©dula o folio vÃ¡lido.');
            setLoading(false);
            return;
         }
@@ -40,37 +68,46 @@ export default function LoginPage() {
         return;
       }
 
-      // Para administradores, procedemos con autenticación
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      // Para administradores, procedemos con autenticaciÃ³n
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      await ensureAdminAccess(credential);
+      setSessionCookie();
+      router.push(getRedirectPath());
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         setError('Credenciales incorrectas. Verifique sus datos.');
+      } else if (err.code === 'auth/not-authorized') {
+        setError('Esta cuenta no tiene permisos administrativos.');
       } else if (err.code === 'auth/too-many-requests') {
         setError('Demasiados intentos. Espere unos minutos.');
       } else {
-        setError('Error al iniciar sesión. Inténtelo de nuevo.');
+        setError('Error al iniciar sesiÃ³n. IntÃ©ntelo de nuevo.');
       }
       setLoading(false);
     }
-    // Nota: No poner setLoading(false) aquí para el caso de éxito de admin, 
-    // ya que desmontará el componente o navegará.
-    // Para student, la navegación ocurre y este estado es irrelevante, pero por si acaso falla algo antes.
+    // Nota: No poner setLoading(false) aquÃ­ para el caso de Ã©xito de admin, 
+    // ya que desmontarÃ¡ el componente o navegarÃ¡.
+    // Para student, la navegaciÃ³n ocurre y este estado es irrelevante, pero por si acaso falla algo antes.
   };
 
   const handleGoogleLogin = async () => {
-    // ... existing logic ...
     setLoading(true);
     setError('');
     const provider = new GoogleAuthProvider();
     
     try {
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      const credential = await signInWithPopup(auth, provider);
+      await ensureAdminAccess(credential);
+      setSessionCookie();
+      router.push(getRedirectPath());
     } catch (err: any) {
       console.error(err);
-      setError('No se pudo iniciar sesión con Google.');
+      if (err.code === 'auth/not-authorized') {
+        setError('Esta cuenta no tiene permisos administrativos.');
+      } else {
+        setError('No se pudo iniciar sesión con Google.');
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +146,7 @@ export default function LoginPage() {
             Acceso SIGCE
           </h2>
           <p className="text-sm text-gray-500">
-            Sistema Integral de Gestión de Certificaciones
+            Sistema Integral de GestiÃ³n de Certificaciones
           </p>
         </div>
 
@@ -154,11 +191,11 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-1 ml-1">
-                {role === 'admin' ? 'Correo Institucional' : 'Matrícula o Cédula'}
+                {role === 'admin' ? 'Correo Institucional' : 'MatrÃ­cula o CÃ©dula'}
               </label>
               <Input
                 id="email"
-                type="email"
+                type={role === 'admin' ? 'email' : 'text'}
                 placeholder={role === 'admin' ? "admin@sigce.edu.do" : "Ej: 2023-1234 o 402-..."}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -171,16 +208,16 @@ export default function LoginPage() {
               <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex justify-between items-center mb-1 ml-1">
                   <label htmlFor="password" className="block text-sm font-bold text-gray-700">
-                    Contraseña
+                    ContraseÃ±a
                   </label>
                   <Link href="#" className="text-xs font-medium text-accent hover:underline tabIndex={-1}">
-                    ¿Olvidaste tu contraseña?
+                    Â¿Olvidaste tu contraseÃ±a?
                   </Link>
                 </div>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -268,3 +305,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

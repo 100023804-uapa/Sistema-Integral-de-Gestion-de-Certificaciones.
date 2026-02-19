@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.3.0";
+export const APP_VERSION = "0.4.0";
 
 export interface Release {
     version: string;
@@ -12,6 +12,21 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+    {
+        version: "0.4.0",
+        date: "2026-02-19",
+        title: "Plantillas, PDF y Mejoras Visuales",
+        description: "Integración completa de generación de PDFs con plantillas, mejoras significativas en la interfaz de usuario y corrección de errores de despliegue.",
+        details: [
+            { type: 'feature', text: 'Generación de PDF: Descarga de certificados con diseño dinámico (plantilla o defecto) y códigos QR.' },
+            { type: 'feature', text: 'Gestión de Plantillas: Selección de diseño al crear nuevos certificados.' },
+            { type: 'feature', text: 'Página "Sobre Nosotros": Nueva sección informativa del equipo.' },
+            { type: 'improvement', text: 'Dashboard UI: Header rediseñado (Avatar y Notificaciones más grandes).' },
+            { type: 'improvement', text: 'Perfil de Usuario: Carga y actualización de foto de perfil con feedback visual.' },
+            { type: 'fix', text: 'Corrección de CORS en Firebase Storage para visualización de imágenes.' },
+            { type: 'fix', text: 'Solución a error 404 en patrón de fondo (grid-pattern).' }
+        ]
+    },
     {
         version: "0.3.0",
         date: "2026-02-19",

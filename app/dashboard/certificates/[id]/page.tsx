@@ -12,13 +12,15 @@ import {
     Clock, 
     FileText, 
     Calendar, 
-    User, 
     Award,
     QrCode
 } from 'lucide-react';
 import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
+import { FirebaseTemplateRepository } from '@/lib/infrastructure/repositories/FirebaseTemplateRepository';
 import { Certificate } from '@/lib/domain/entities/Certificate';
+import { generateCertificatePDF } from '@/lib/application/utils/pdf-generator';
 import { QRCodeSVG } from 'qrcode.react';
+import { toast } from 'sonner';
 
 export default function CertificateDetailsPage({ params }: { params: any }) {
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function CertificateDetailsPage({ params }: { params: any }) {
   
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const qrRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +58,36 @@ export default function CertificateDetailsPage({ params }: { params: any }) {
     }
   }, [id]);
 
+  const handleDownload = async () => {
+    if (!certificate) return;
+    setIsDownloading(true);
+    
+    try {
+        let template = null;
+        if (certificate.templateId) {
+            const templateRepo = new FirebaseTemplateRepository();
+            template = await templateRepo.findById(certificate.templateId);
+        }
+
+        const pdfBlob = await generateCertificatePDF(certificate, template);
+        const url = window.URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Certificado_${certificate.folio}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast.success("Certificado descargado correctamente");
+    } catch (err) {
+        console.error("Error generating PDF:", err);
+        toast.error("Error al generar el PDF");
+    } finally {
+        setIsDownloading(false);
+    }
+  };
+
   if (loading) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -79,13 +112,13 @@ export default function CertificateDetailsPage({ params }: { params: any }) {
     );
   }
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     active: 'bg-green-100 text-green-800 border-green-200',
     revoked: 'bg-red-100 text-red-800 border-red-200',
     expired: 'bg-gray-100 text-gray-800 border-gray-200'
   };
 
-  const statusIcons = {
+  const statusIcons: Record<string, React.ReactNode> = {
     active: <CheckCircle size={16} />,
     revoked: <XCircle size={16} />,
     expired: <Clock size={16} />
@@ -113,9 +146,19 @@ export default function CertificateDetailsPage({ params }: { params: any }) {
                     <button className="p-2 text-gray-500 hover:text-primary transition-colors rounded-lg hover:bg-gray-50">
                         <Share2 size={20} />
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm">
-                        <Download size={18} />
-                        <span className="font-medium hidden sm:inline">Descargar PDF</span>
+                    <button 
+                        onClick={handleDownload}
+                        disabled={isDownloading}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-wait"
+                    >
+                        {isDownloading ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : (
+                            <Download size={18} />
+                        )}
+                        <span className="font-medium hidden sm:inline">
+                            {isDownloading ? 'Generando...' : 'Descargar PDF'}
+                        </span>
                     </button>
                 </div>
             </div>

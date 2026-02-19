@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, User, FileText, Calendar, Save, CheckCircle, AlertCircle } from 'lucide-react';
@@ -10,11 +10,16 @@ import { GenerateFolio } from '@/lib/application/use-cases/GenerateFolio';
 import { CreateCertificate } from '@/lib/application/use-cases/CreateCertificate';
 import { CertificateType } from '@/lib/domain/entities/Certificate';
 
+import { FirebaseTemplateRepository } from '@/lib/infrastructure/repositories/FirebaseTemplateRepository';
+import { CertificateTemplate } from '@/lib/domain/entities/Template';
+import { LayoutTemplate } from 'lucide-react';
+
 export default function CreateCertificatePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -25,8 +30,22 @@ export default function CreateCertificatePage() {
     type: 'CAP' as CertificateType,
     issueDate: new Date().toISOString().split('T')[0],
     expirationDate: '',
-    folioPrefix: 'sigce' // Default prefix
+    folioPrefix: 'sigce', // Default prefix
+    templateId: ''
   });
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+        try {
+            const repo = new FirebaseTemplateRepository();
+            const data = await repo.list(true);
+            setTemplates(data);
+        } catch (err) {
+            console.error("Error loading templates", err);
+        }
+    };
+    fetchTemplates();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -51,7 +70,8 @@ export default function CreateCertificatePage() {
             issueDate: new Date(formData.issueDate),
             prefix: formData.folioPrefix || undefined,
             cedula: formData.cedula,
-            studentEmail: '' // Podríamos agregar campo email al form si se desea
+            studentEmail: '', // Podríamos agregar campo email al form si se desea
+            templateId: formData.templateId || undefined
         });
 
         setSuccess(true);
@@ -114,6 +134,27 @@ export default function CreateCertificatePage() {
         >
             <form onSubmit={handleSubmit} className="space-y-6">
             
+            {/* Template Selection */}
+            <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <LayoutTemplate size={16} /> Plantilla de Diseño
+                </label>
+                <select 
+                    name="templateId"
+                    value={formData.templateId} 
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                >
+                    <option value="">Predeterminada (Sistema)</option>
+                    {templates.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                </select>
+                <p className="text-xs text-gray-500">
+                    Selecciona una plantilla visual o usa el formato estándar.
+                </p>
+            </div>
+
             {/* Folio Prefix Configuration */}
             <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">

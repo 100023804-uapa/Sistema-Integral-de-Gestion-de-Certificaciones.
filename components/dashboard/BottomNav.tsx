@@ -9,7 +9,7 @@ import { LayoutDashboard, FileText, Users, Settings, Search, LayoutTemplate } fr
 const navItems = [
   { label: 'Inicio', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Certificados', icon: FileText, href: '/dashboard/certificates' },
-  { label: 'Plantillas', icon: LayoutTemplate, href: '/dashboard/templates' },
+  { label: 'Programas', icon: LayoutTemplate, href: '/dashboard/programs' }, // Temporary icon reuse if needed, or import GraduationCap
   { label: 'Graduados', icon: Users, href: '/dashboard/graduates' },
   { label: 'Ajustes', icon: Settings, href: '/dashboard/settings' },
 ];

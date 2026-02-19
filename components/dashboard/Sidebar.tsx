@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { APP_VERSION } from '@/lib/config/changelog';
 import { ChangelogModal } from '@/components/ui/ChangelogModal';
@@ -19,14 +19,28 @@ import {
 const menuItems = [
   { label: 'Resumen', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Certificados', icon: FileText, href: '/dashboard/certificates' },
+  { label: 'Programas', icon: GraduationCap, href: '/dashboard/programs' },
   { label: 'Plantillas', icon: LayoutTemplate, href: '/dashboard/templates' },
   { label: 'Participantes', icon: Users, href: '/dashboard/graduates' },
   { label: 'Configuración', icon: Settings, href: '/dashboard/settings' },
 ];
 
+import { useAuth } from '@/lib/contexts/AuthContext';
+
 export function Sidebar() {
   const pathname = usePathname();
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   return (
     <>
@@ -68,7 +82,10 @@ export function Sidebar() {
         </nav>
         
         <div className="p-4 border-t border-white/5 space-y-2">
-          <button className="flex items-center gap-3 px-4 py-3 w-full text-blue-200 hover:text-white transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 w-full text-blue-200 hover:text-white transition-colors"
+          >
             <LogOut size={20} />
             <span className="font-medium">Cerrar Sesión</span>
           </button>

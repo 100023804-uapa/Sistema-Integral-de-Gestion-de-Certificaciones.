@@ -11,6 +11,7 @@ export interface Certificate {
   issueDate: Date;
   expirationDate?: Date; // Opcional
   status: CertificateStatus;
+  templateId?: string; // ID de la plantilla utilizada
   qrCodeUrl: string; // URL pública de validación
   pdfUrl?: string; // URL del archivo en Storage
   metadata: Record<string, any>; // Para datos extra flexibles

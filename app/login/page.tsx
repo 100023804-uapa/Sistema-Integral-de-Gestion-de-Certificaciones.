@@ -80,7 +80,10 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
       {/* Background with Brand Gradient */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-[var(--color-primary)] via-[#002b5c] to-[var(--color-primary)]">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
+        <div className="absolute inset-0 opacity-10" style={{ 
+            backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', 
+            backgroundSize: '24px 24px' 
+        }}></div>
         {/* Decorative blobs */}
         <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[var(--color-accent)] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>

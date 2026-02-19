@@ -23,12 +23,15 @@ export const metadata: Metadata = {
   },
 };
 
+import { Toaster } from 'sonner';
+
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="es" className={`${montserrat.variable} ${poppins.variable}`}>
       <body className={`${montserrat.variable} ${poppins.variable}`} suppressHydrationWarning>
         <AuthProvider>
           {children}
+          <Toaster richColors position="top-center" />
         </AuthProvider>
       </body>
     </html>

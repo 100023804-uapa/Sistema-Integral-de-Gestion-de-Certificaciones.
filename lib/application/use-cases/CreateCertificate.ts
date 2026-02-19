@@ -13,6 +13,7 @@ export interface CreateCertificateInput {
     prefix?: string;
     metadata?: Record<string, any>;
     studentEmail?: string; // Added for student creation
+    templateId?: string;
 }
 
 export class CreateCertificate {
@@ -61,6 +62,7 @@ export class CreateCertificate {
             issueDate: input.issueDate,
             status: 'active' as CertificateStatus,
             metadata: input.metadata || {},
+            templateId: input.templateId,
         };
 
         // 4. Guardar en repositorio de certificados

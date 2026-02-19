@@ -63,11 +63,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
               <div className="space-y-2">
                 {release.details.map((detail, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className={`mt-0.5 p-1 rounded-full flex-shrink-0 ${
-                        detail.type === 'feature' ? 'bg-purple-100 text-purple-600' :
-                        detail.type === 'fix' ? 'bg-red-100 text-red-600' :
-                        'bg-blue-100 text-blue-600'
-                    }`}>
+                    <span className="mt-0.5 p-1 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">
                         {detail.type === 'feature' && <Sparkles size={10} />}
                         {detail.type === 'fix' && <Wrench size={10} />}
                         {detail.type === 'improvement' && <ArrowUpCircle size={10} />}

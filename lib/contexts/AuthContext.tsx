@@ -1,18 +1,20 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  logout: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -43,13 +45,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out:", error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, logout }}>
       {!loading ? (
         children
       ) : (
-        <div className="flex items-center justify-center min-h-screen bg-[var(--color-navy)]">
-          <Loader2 className="h-8 w-8 animate-spin text-white" />
+        <div className="flex items-center justify-center min-h-screen bg-[var(--color-background)]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
     </AuthContext.Provider>

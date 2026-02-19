@@ -1,6 +1,5 @@
 import { db } from "@/lib/firebase";
-import { collection, getCountFromServer, query, where, Timestamp } from "firebase/firestore";
-import { CertificateStatus } from "@/lib/domain/entities/Certificate";
+import { collection, getCountFromServer, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 
 export interface DashboardStats {
     totalIssued: number;
@@ -24,26 +23,35 @@ export class GetDashboardStats {
             const issuedQuery = query(certificatesRef, where("status", "==", "active"));
             const issuedSnapshot = await getCountFromServer(issuedQuery);
 
-            // 2. Pending Validation (Simulated for now, or based on 'pending' status if added)
-            // Assuming 'revoked' or a specific flag might count as attention needed, 
-            // but for now let's use a placeholder logic or a specific status if we add 'pending' to types.
-            // Let's assume we want to count 'expired' as needing attention for now, or add a 'pending' status later.
-            // For this MVP, let's query 'revoked' as a proxy for "Attention Needed" or just return 0 if no pending status exists.
-            // Actually, let's keep it 0 or mock it until we add a 'pending' verification queue.
+            // 2. Pending Validation (Placeholder for now)
             const pendingCount = 0;
 
-            // 3. Active Programs (Distinct programs query is expensive in NoSQL, 
-            // usually better to keep a counter in a separate 'stats' document or 'programs' collection)
-            // For MVP, we will fetch a separate 'programs' collection count if it existed.
-            // Let's mock this part or assumes a 'programs' collection exists.
-            const programsRef = collection(db, "programs");
-            const programsSnapshot = await getCountFromServer(programsRef);
+            // 3. Recent Activity & Active Programs Calculation
+            // We fetch the last 50 certificates to:
+            // a) Generate recent activity feed
+            // b) Estimate active programs count (distinct academicProgram)
+            const recentQuery = query(certificatesRef, orderBy("createdAt", "desc"), limit(50));
+            const recentDocs = await getDocs(recentQuery);
+
+            const recentActivity = recentDocs.docs.slice(0, 5).map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    type: 'success' as const,
+                    title: 'Nuevo Certificado',
+                    description: `Emitido a ${data.studentName || 'Estudiante'} - ${data.folio || ''}`,
+                    time: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : 'Reciente'
+                };
+            });
+
+            // Calculate distinct programs from the recent batch (approximation)
+            const uniquePrograms = new Set(recentDocs.docs.map(doc => doc.data().academicProgram).filter(Boolean));
 
             return {
                 totalIssued: issuedSnapshot.data().count,
                 pendingValidation: pendingCount,
-                activePrograms: programsSnapshot.data().count || 0,
-                recentActivity: [], // We would query a 'logs' collection here
+                activePrograms: uniquePrograms.size, // This will now show a real number based on recent data
+                recentActivity: recentActivity,
             };
         } catch (error) {
             console.error("Error fetching dashboard stats:", error);

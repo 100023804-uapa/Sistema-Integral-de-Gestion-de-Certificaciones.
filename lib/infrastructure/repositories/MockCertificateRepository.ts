@@ -17,6 +17,14 @@ export class MockCertificateRepository implements ICertificateRepository {
       metadata: {},
       createdAt: new Date('2023-10-15'),
       updatedAt: new Date('2023-10-15'),
+      history: [
+        {
+          date: new Date('2023-10-15'),
+          action: 'created',
+          performedBy: 'System Admin',
+          details: 'Certificado generado automáticamente'
+        }
+      ]
     },
     {
       id: 'SIGCE-2023-1102',
@@ -32,6 +40,19 @@ export class MockCertificateRepository implements ICertificateRepository {
       metadata: {},
       createdAt: new Date('2023-10-08'),
       updatedAt: new Date('2023-10-08'),
+      history: [
+        {
+          date: new Date('2023-10-08'),
+          action: 'created',
+          performedBy: 'System Admin'
+        },
+        {
+          date: new Date('2023-10-09'),
+          action: 'printed',
+          performedBy: 'Coordinador Académico',
+          details: 'Enviado a impresión física'
+        }
+      ]
     },
   ];
 
@@ -55,7 +76,15 @@ export class MockCertificateRepository implements ICertificateRepository {
       createdAt: new Date(),
       updatedAt: new Date(),
       qrCodeUrl: input.qrCodeUrl || `https://mock.com/verify/${data.folio}`,
-      pdfUrl: input.pdfUrl || undefined
+      pdfUrl: input.pdfUrl || undefined,
+      history: [
+        {
+          date: new Date(),
+          action: 'created',
+          performedBy: 'Current User', // TODO: Get actual user
+          details: 'Certificado creado'
+        }
+      ]
     };
     this.certificates.push(newCertificate);
     return newCertificate;
@@ -66,6 +95,15 @@ export class MockCertificateRepository implements ICertificateRepository {
     if (index !== -1) {
       this.certificates[index].status = status;
       this.certificates[index].updatedAt = new Date();
+      if (!this.certificates[index].history) {
+        this.certificates[index].history = [];
+      }
+      this.certificates[index].history!.push({
+        date: new Date(),
+        action: 'status_changed',
+        performedBy: 'System',
+        details: `Estado cambiado a ${status}`
+      });
     }
   }
 

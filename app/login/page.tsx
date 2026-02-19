@@ -10,6 +10,7 @@ import { GraduationCap, Loader2, AlertCircle, User, ShieldCheck } from 'lucide-r
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { APP_VERSION } from '@/lib/config/changelog';
+import { ChangelogModal } from '@/components/ui/ChangelogModal';
 
 type LoginRole = 'admin' | 'student';
 
@@ -20,16 +21,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
+    // ... existing logic ...
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // TODO: Here we should verify if the user matches the selected role (via Claims or DB check)
-      // For MVP, we allow access and redirect based on intention.
       router.push('/dashboard');
     } catch (err: any) {
       console.error(err);
@@ -46,6 +47,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
+    // ... existing logic ...
     setLoading(true);
     setError('');
     const provider = new GoogleAuthProvider();
@@ -211,11 +213,19 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="text-center text-xs text-gray-400 mt-8">
             <p>&copy; {new Date().getFullYear()} SIGCE - Todos los derechos reservados.</p>
-            <Link href="/changelog" className="text-gray-300 hover:text-primary transition-colors mt-2 inline-block">
+            <button 
+                onClick={() => setIsChangelogOpen(true)}
+                className="text-gray-300 hover:text-primary transition-colors mt-2 inline-block hover:underline"
+            >
                 v{APP_VERSION}
-            </Link>
+            </button>
         </div>
       </div>
+      
+      <ChangelogModal 
+        isOpen={isChangelogOpen} 
+        onClose={() => setIsChangelogOpen(false)} 
+      />
     </div>
   );
 }

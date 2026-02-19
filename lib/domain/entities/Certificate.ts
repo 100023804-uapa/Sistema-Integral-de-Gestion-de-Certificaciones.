@@ -16,6 +16,14 @@ export interface Certificate {
   metadata: Record<string, any>; // Para datos extra flexibles
   createdAt: Date;
   updatedAt: Date;
+  history?: CertificateHistoryItem[];
+}
+
+export interface CertificateHistoryItem {
+  date: Date;
+  action: string; // 'created', 'updated', 'printed', 'delivered', 'revoked'
+  performedBy: string; // User ID or Name
+  details?: string;
 }
 
 export type CreateCertificateDTO = Omit<Certificate, 'id' | 'createdAt' | 'updatedAt' | 'qrCodeUrl' | 'pdfUrl'>;

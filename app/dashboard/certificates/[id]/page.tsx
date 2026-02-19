@@ -20,10 +20,10 @@ import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories
 import { Certificate } from '@/lib/domain/entities/Certificate';
 import { QRCodeSVG } from 'qrcode.react';
 
-export default function CertificateDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default function CertificateDetailsPage({ params }: { params: any }) {
   const router = useRouter();
   // Unwrap params using React.use() for Next.js 15+
-  const { id } = React.use(params);
+  const { id } = React.use(params) as { id: string };
   
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);

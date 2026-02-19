@@ -33,7 +33,7 @@ export default function CreateTemplatePage() {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const { startUpload } = useUploadThing("imageUploader", {
-    onClientUploadComplete: (res) => {
+    onClientUploadComplete: (res: any) => {
         setLoading(false);
         setUploadingSignature(false);
         // We will handle logic inside the upload function by awaiting result if possible, 

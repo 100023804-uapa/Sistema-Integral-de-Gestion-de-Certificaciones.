@@ -4,18 +4,21 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { APP_VERSION } from '@/lib/config/changelog';
 import { 
   LayoutDashboard, 
   FileText, 
   Users, 
   Settings, 
   LogOut,
-  GraduationCap
+  GraduationCap,
+  LayoutTemplate
 } from 'lucide-react';
 
 const menuItems = [
   { label: 'Resumen', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Certificados', icon: FileText, href: '/dashboard/certificates' },
+  { label: 'Plantillas', icon: LayoutTemplate, href: '/dashboard/templates' },
   { label: 'Graduados', icon: Users, href: '/dashboard/graduates' },
   { label: 'Configuración', icon: Settings, href: '/dashboard/settings' },
 ];
@@ -66,6 +69,9 @@ export function Sidebar() {
           <LogOut size={20} />
           <span className="font-medium">Cerrar Sesión</span>
         </button>
+        <Link href="/changelog" className="block text-center mt-4 text-[10px] text-blue-300/50 hover:text-blue-200 transition-colors">
+            v{APP_VERSION}
+        </Link>
       </div>
     </div>
   );

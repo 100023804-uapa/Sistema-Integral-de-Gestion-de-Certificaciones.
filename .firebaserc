@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "sigce-v2"
+  },
   "targets": {},
   "etags": {}
 }

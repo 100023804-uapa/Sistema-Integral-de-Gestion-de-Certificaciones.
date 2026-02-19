@@ -1,11 +1,33 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Search, Filter } from 'lucide-react';
+import { PlusCircle, Search, Filter, Loader2, FileText, Calendar, User } from 'lucide-react';
+import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
+import { Certificate } from '@/lib/domain/entities/Certificate';
 
 export default function CertificatesPage() {
   const router = useRouter();
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCertificates = async () => {
+      try {
+        const repository = new FirebaseCertificateRepository();
+        const data = await repository.list();
+        setCertificates(data);
+      } catch (err) {
+        console.error("Error fetching certificates:", err);
+        setError("Error al cargar los certificados.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCertificates();
+  }, []);
 
   return (
     <div className="px-4 py-8 md:px-8 md:py-12 space-y-8">
@@ -23,7 +45,7 @@ export default function CertificatesPage() {
         </button>
       </div>
 
-      {/* Filters & Search */}
+      {/* Filters & Search - Visual Only for now */}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
             <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
@@ -38,15 +60,87 @@ export default function CertificatesPage() {
         </button>
       </div>
 
-      {/* Empty State / List */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px] flex items-center justify-center">
-        <div className="text-center space-y-4 p-8">
-            <div className="bg-gray-50 p-6 rounded-full inline-block">
-                <Search className="w-12 h-12 text-gray-300" />
+      {/* Content */}
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
+        {loading ? (
+            <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
+                <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                <p className="text-gray-400">Cargando certificados...</p>
             </div>
-            <h3 className="text-lg font-bold text-gray-800">No hay certificados aún</h3>
-            <p className="text-gray-500 max-w-sm mx-auto">Comienza emitiendo el primer certificado para visualizarlo aquí.</p>
-        </div>
+        ) : error ? (
+            <div className="flex flex-col items-center justify-center h-[400px] space-y-4 text-center p-8">
+                <p className="text-red-500">{error}</p>
+                 <button onClick={() => window.location.reload()} className="text-primary underline">Intentar de nuevo</button>
+            </div>
+        ) : certificates.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-[400px] space-y-4 text-center p-8">
+                <div className="bg-gray-50 p-6 rounded-full inline-block">
+                    <Search className="w-12 h-12 text-gray-300" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">No hay certificados aún</h3>
+                <p className="text-gray-500 max-w-sm mx-auto">Comienza emitiendo el primer certificado para visualizarlo aquí.</p>
+            </div>
+        ) : (
+            <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                            <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Folio</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Estudiante</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Programa</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Fecha Emisión</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Estado</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {certificates.map((cert) => (
+                            <tr key={cert.id} className="hover:bg-gray-50/50 transition-colors">
+                                <td className="px-6 py-4">
+                                    <span className="font-mono text-xs font-semibold bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                        {cert.folio}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                                            {cert.studentName.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-gray-900">{cert.studentName}</p>
+                                            <p className="text-xs text-gray-400">{cert.studentId}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                                    {cert.academicProgram}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-500">
+                                    {cert.issueDate.toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        cert.status === 'active' ? 'bg-green-100 text-green-800' :
+                                        cert.status === 'revoked' ? 'bg-red-100 text-red-800' :
+                                        'bg-gray-100 text-gray-800'
+                                    }`}>
+                                        {cert.status === 'active' ? 'Activo' : cert.status === 'revoked' ? 'Revocado' : 'Expirado'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <button 
+                                        onClick={() => router.push(`/dashboard/certificates/${cert.id}`)}
+                                        className="text-gray-400 hover:text-primary transition-colors font-medium text-sm"
+                                    >
+                                        Ver Detalles
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        )}
       </div>
     </div>
   );

@@ -3,26 +3,61 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, FileText, Calendar, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, User, FileText, Calendar, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
+import { GenerateFolio } from '@/lib/application/use-cases/GenerateFolio';
+import { CreateCertificate } from '@/lib/application/use-cases/CreateCertificate';
+import { CertificateType } from '@/lib/domain/entities/Certificate';
 
 export default function CreateCertificatePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Form State
+  const [formData, setFormData] = useState({
+    studentName: '',
+    studentId: '',
+    academicProgram: '',
+    type: 'CAP' as CertificateType,
+    issueDate: new Date().toISOString().split('T')[0],
+    expirationDate: '',
+    folioPrefix: 'sigce' // Default prefix
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
-    // Simulating API call
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess(true);
-      // Reset form or redirect after delay
-      setTimeout(() => {
-         router.push('/dashboard');
-      }, 2000);
-    }, 1500);
+    try {
+        const repository = new FirebaseCertificateRepository();
+        const generateFolio = new GenerateFolio(repository);
+        const createCertificate = new CreateCertificate(repository, generateFolio);
+
+        await createCertificate.execute({
+            ...formData,
+            issueDate: new Date(formData.issueDate),
+            prefix: formData.folioPrefix || undefined
+        });
+
+        setSuccess(true);
+        setTimeout(() => {
+            router.push('/dashboard/certificates');
+        }, 2000);
+
+    } catch (err: any) {
+        console.error("Error creating certificate:", err);
+        setError(err.message || "Error al crear el certificado. Intente nuevamente.");
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -44,6 +79,13 @@ export default function CreateCertificatePage() {
         </div>
       </div>
 
+      {error && (
+        <div className="p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100">
+            <AlertCircle size={20} />
+            <span>{error}</span>
+        </div>
+      )}
+
       {success ? (
          <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
@@ -55,7 +97,7 @@ export default function CreateCertificatePage() {
             </div>
             <h2 className="text-2xl font-bold text-gray-800">¡Certificado Creado!</h2>
             <p className="text-gray-500">El certificado se ha generado y registrado correctamente.</p>
-            <p className="text-sm text-gray-400">Redirigiendo al dashboard...</p>
+            <p className="text-sm text-gray-400">Redirigiendo al listado...</p>
          </motion.div>
       ) : (
         <motion.div
@@ -65,13 +107,39 @@ export default function CreateCertificatePage() {
         >
             <form onSubmit={handleSubmit} className="space-y-6">
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Folio Prefix Configuration */}
+            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-6">
+                <label className="block text-sm font-semibold text-blue-900 mb-2">
+                    Configuración de Folio (Prefijo)
+                </label>
+                <div className="flex items-center gap-2">
+                    <input 
+                        type="text" 
+                        name="folioPrefix"
+                        value={formData.folioPrefix} 
+                        onChange={handleChange}
+                        placeholder="Ej. SIGCE, UAPA, ETC"
+                        className="flex-1 w-full px-4 py-2.5 rounded-xl border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
+                    />
+                    <span className="text-gray-400 font-mono text-sm">
+                        - {new Date().getFullYear()} - {formData.type} - 0001
+                    </span>
+                </div>
+                <p className="text-xs text-blue-600 mt-2">
+                    Personaliza la parte inicial del código único. El resto se genera automáticamente.
+                </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 space-y-0">
                 {/* Estudiante */}
                 <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <User size={16} /> Nombre del Estudiante
+                <label className="block text-sm font-semibold text-gray-700">
+                    <User size={16} className="inline mr-2 text-primary" /> Nombre del Estudiante
                 </label>
                 <input 
+                    name="studentName"
+                    value={formData.studentName}
+                    onChange={handleChange}
                     type="text" 
                     required
                     placeholder="Ej. Juan Pérez"
@@ -84,6 +152,9 @@ export default function CreateCertificatePage() {
                     <User size={16} /> ID / Matrícula (Opcional)
                 </label>
                 <input 
+                    name="studentId"
+                    value={formData.studentId}
+                    onChange={handleChange}
                     type="text" 
                     placeholder="Ej. 2024-00123"
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -95,24 +166,43 @@ export default function CreateCertificatePage() {
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                     <FileText size={16} /> Programa Académico
                 </label>
+                <input 
+                    name="academicProgram"
+                    value={formData.academicProgram}
+                    onChange={handleChange}
+                    type="text"
+                    required
+                    placeholder="Ej. Diplomado en Gestión de Proyectos"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+                </div>
+
+                {/* Tipo y Fecha */}
+                <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <FileText size={16} /> Tipo de Certificado
+                </label>
                 <select 
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                 >
-                    <option value="">Seleccionar programa...</option>
-                    <option value="diplomado-gestion">Diplomado en Gestión de Proyectos</option>
-                    <option value="curso-excel">Curso Avanzado de Excel</option>
-                    <option value="taller-liderazgo">Taller de Liderazgo Efectivo</option>
+                    <option value="CAP">CAP (Certificado de Aprobación)</option>
+                    <option value="PROFUNDO">PROFUNDO (Diplomado Avanzado)</option>
                 </select>
                 </div>
 
-                {/* Fechas */}
                 <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                     <Calendar size={16} /> Fecha de Emisión
                 </label>
                 <input 
+                    name="issueDate"
+                    value={formData.issueDate}
+                    onChange={handleChange}
                     type="date" 
-                    defaultValue={new Date().toISOString().split('T')[0]}
+                    required
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
                 </div>

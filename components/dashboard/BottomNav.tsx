@@ -4,11 +4,12 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, FileText, Users, Settings, Search } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Settings, Search, LayoutTemplate } from 'lucide-react';
 
 const navItems = [
   { label: 'Inicio', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Certificados', icon: FileText, href: '/dashboard/certificates' },
+  { label: 'Plantillas', icon: LayoutTemplate, href: '/dashboard/templates' },
   { label: 'Graduados', icon: Users, href: '/dashboard/graduates' },
   { label: 'Ajustes', icon: Settings, href: '/dashboard/settings' },
 ];

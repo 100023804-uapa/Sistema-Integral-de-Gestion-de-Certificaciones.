@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { GraduationCap, Loader2, AlertCircle, User, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { APP_VERSION } from '@/lib/config/changelog';
 
 type LoginRole = 'admin' | 'student';
 
@@ -209,7 +210,10 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-400 mt-8">
-            &copy; {new Date().getFullYear()} sigce - Todos los derechos reservados.
+            <p>&copy; {new Date().getFullYear()} SIGCE - Todos los derechos reservados.</p>
+            <Link href="/changelog" className="text-gray-300 hover:text-primary transition-colors mt-2 inline-block">
+                v{APP_VERSION}
+            </Link>
         </div>
       </div>
     </div>

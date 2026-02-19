@@ -3,7 +3,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { CheckCircle, Download, Share2, Calendar, Clock, Award } from 'lucide-react';
-import { MockCertificateRepository } from '@/lib/infrastructure/repositories/MockCertificateRepository';
+import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
@@ -14,7 +14,7 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
   const { id } = await params;
   if (!id) return notFound();
 
-  const repository = new MockCertificateRepository();
+  const repository = new FirebaseCertificateRepository();
   // Try finding by ID first
   let certificate = await repository.findById(id);
 
@@ -128,10 +128,19 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
         </div>
 
         <div className="mt-8 flex flex-col gap-3 sticky bottom-4 z-10">
-          <Button className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 h-12 text-base shadow-lg">
-            <Download className="mr-2 h-5 w-5" />
-            Descargar PDF Original
-          </Button>
+          {certificate.pdfUrl ? (
+              <a href={certificate.pdfUrl} target="_blank" rel="noopener noreferrer" className="w-full">
+                  <Button className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 h-12 text-base shadow-lg">
+                    <Download className="mr-2 h-5 w-5" />
+                    Descargar PDF Original
+                  </Button>
+              </a>
+          ) : (
+              <Button disabled className="w-full bg-gray-300 cursor-not-allowed h-12 text-base shadow-none text-gray-500">
+                <Download className="mr-2 h-5 w-5" />
+                PDF No Disponible
+              </Button>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Button variant="secondary" className="w-full">
               <Share2 className="mr-2 h-4 w-4" />

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ShieldCheck, CheckCircle, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { SearchCertificatesForm } from '@/components/landing/SearchCertificatesForm';
 
 export default function LandingPage() {
   return (
@@ -49,18 +50,20 @@ export default function LandingPage() {
                 Gestión integral de certificaciones académicas con seguridad y verificación instantánea.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/verify">
-                  <Button size="lg" className="bg-[var(--color-accent)] hover:bg-white hover:text-[var(--color-accent)] text-white font-black px-10 py-7 text-xl rounded-2xl shadow-xl shadow-[var(--color-accent)]/30 h-auto w-full sm:w-auto transition-all duration-300">
-                    <QrCode className="mr-3 h-6 w-6" />
-                    VALIDAR AHORA
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-[var(--color-primary)] px-10 py-7 text-xl rounded-2xl h-auto w-full sm:w-auto backdrop-blur-sm font-bold transition-all duration-300">
-                    ACCESO INSTITUCIONAL
-                  </Button>
-                </Link>
+
+
+              <div className="w-full">
+                <SearchCertificatesForm />
+                
+                <div className="mt-6 flex items-center gap-4 text-sm text-blue-200/60 font-medium">
+                    <span className="flex items-center gap-1">
+                        <CheckCircle className="h-4 w-4" /> Búsqueda segura
+                    </span>
+                    <span>•</span>
+                    <Link href="/login" className="hover:text-white transition-colors hover:underline">
+                        Acceso Administrativo
+                    </Link>
+                </div>
               </div>
             </motion.div>
           </div>

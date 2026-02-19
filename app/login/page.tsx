@@ -60,7 +60,7 @@ export default function LoginPage() {
       if (role === 'student') {
         // Para participantes, redirigimos a la consulta pÃºblica
         if (!email.trim()) {
-           setError('Por favor ingrese una matrÃ­cula, cÃ©dula o folio vÃ¡lido.');
+           setError('Por favor ingrese una matrícula, cédula o folio válido.');
            setLoading(false);
            return;
         }
@@ -82,13 +82,14 @@ export default function LoginPage() {
       } else if (err.code === 'auth/too-many-requests') {
         setError('Demasiados intentos. Espere unos minutos.');
       } else {
-        setError('Error al iniciar sesiÃ³n. IntÃ©ntelo de nuevo.');
+      } else {
+        setError('Error al iniciar sesión. Inténtelo de nuevo.');
       }
       setLoading(false);
     }
-    // Nota: No poner setLoading(false) aquÃ­ para el caso de Ã©xito de admin, 
-    // ya que desmontarÃ¡ el componente o navegarÃ¡.
-    // Para student, la navegaciÃ³n ocurre y este estado es irrelevante, pero por si acaso falla algo antes.
+    // Nota: No poner setLoading(false) aquí para el caso de éxito de admin, 
+    // ya que desmontará el componente o navegará.
+    // Para student, la navegación ocurre y este estado es irrelevante, pero por si acaso falla algo antes.
   };
 
   const handleGoogleLogin = async () => {
@@ -146,7 +147,7 @@ export default function LoginPage() {
             Acceso SIGCE
           </h2>
           <p className="text-sm text-gray-500">
-            Sistema Integral de GestiÃ³n de Certificaciones
+            Sistema Integral de Gestión de Certificaciones
           </p>
         </div>
 
@@ -191,7 +192,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-1 ml-1">
-                {role === 'admin' ? 'Correo Institucional' : 'MatrÃ­cula o CÃ©dula'}
+                {role === 'admin' ? 'Correo Institucional' : 'Matrícula o Cédula'}
               </label>
               <Input
                 id="email"
@@ -203,21 +204,15 @@ export default function LoginPage() {
                 className="h-12 rounded-xl"
               />
             </div>
-            
             {role === 'admin' && (
-              <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="flex justify-between items-center mb-1 ml-1">
-                  <label htmlFor="password" className="block text-sm font-bold text-gray-700">
-                    ContraseÃ±a
-                  </label>
-                  <Link href="#" className="text-xs font-medium text-accent hover:underline tabIndex={-1}">
-                    Â¿Olvidaste tu contraseÃ±a?
-                  </Link>
-                </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-1 ml-1">
+                  Contraseña
+                </label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

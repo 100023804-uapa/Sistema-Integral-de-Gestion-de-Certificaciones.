@@ -82,7 +82,6 @@ export default function LoginPage() {
       } else if (err.code === 'auth/too-many-requests') {
         setError('Demasiados intentos. Espere unos minutos.');
       } else {
-      } else {
         setError('Error al iniciar sesión. Inténtelo de nuevo.');
       }
       setLoading(false);

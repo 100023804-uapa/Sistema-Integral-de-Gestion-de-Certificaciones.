@@ -58,6 +58,15 @@ export class FirebaseAccessRepository {
         const total = await getCountFromServer(collection(db, COLLECTION_NAME));
         if (total.data().count > 0) return false;
 
+        // HARDENING: Only allow bootstrap if email matches the implementation plan / strict env check
+        const allowedBootstrapEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
+        // If Env var is set, enforce it. If not set, maybe fallback to "first comer" (or block, safer to block? let's enforce if set)
+        if (allowedBootstrapEmail && normalized !== this.normalizeEmail(allowedBootstrapEmail)) {
+            console.warn(`Bootstrap attempt failed: ${normalized} is not the allowed bootstrap admin.`);
+            return false;
+        }
+
         await setDoc(doc(db, COLLECTION_NAME, normalized), {
             email: normalized,
             role: 'admin',

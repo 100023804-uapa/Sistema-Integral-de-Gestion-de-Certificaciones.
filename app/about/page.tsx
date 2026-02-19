@@ -70,14 +70,81 @@ export default function AboutPage() {
             Conoce a nuestro equipo
           </h2>
           <p className="text-xl text-gray-500 leading-relaxed">
-            Somos un grupo diverso de apasionados por la educación y la tecnología, trabajando juntos para simplificar la gestión de certificaciones en todo el mundo.
+            Este es un trabajo realizado por los siguientes participantes para la pasantía febrero-abril 2026.
           </p>
+        </div>
+
+        {/* Maestro / Facilitador Section */}
+        <div className="max-w-md mx-auto mb-16 text-center">
+            <div className="relative mb-6">
+                <div className="w-56 h-56 mx-auto rounded-full overflow-hidden border-4 border-accent shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                  <img 
+                    src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?q=80&w=400&h=400&fit=crop" 
+                    alt="Facilitador" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-accent text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-md">
+                    Facilitador
+                </div>
+            </div>
+            
+            <h3 className="text-2xl font-black text-gray-900 mb-2">
+                Ing. Juan Pérez
+            </h3>
+            <p className="text-gray-500 leading-relaxed font-medium">
+                Maestro Guía & Mentor del Proyecto
+            </p>
+            <p className="text-sm text-gray-400 mt-2 italic">
+                "Guiando a la próxima generación de innovadores tecnológicos."
+            </p>
         </div>
 
         {/* Team Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {teamMembers.map((member) => (
-            <div key={member.name} className="group flex flex-col items-center text-center">
+          {Array.from({ length: 13 }).map((_, index) => {
+             const baseMembers = [
+                {
+                    name: "Ana García",
+                    role: "Fundadora & CEO",
+                    description: "Líder visionaria con experiencia en educación tecnológica.",
+                    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&h=400&fit=crop"
+                },
+                {
+                    name: "Carlos Rodríguez",
+                    role: "Director de Tecnología",
+                    description: "Arquitecto de software experto en sistemas escalables.",
+                    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&h=400&fit=crop"
+                },
+                {
+                    name: "Elena Martínez",
+                    role: "Directora de Operaciones",
+                    description: "Experta en optimización de procesos y gestión.",
+                    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&h=400&fit=crop"
+                },
+                {
+                    name: "David López",
+                    role: "Lead Developer",
+                    description: "Desarrollador Full Stack apasionado.",
+                    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&h=400&fit=crop"
+                },
+                 {
+                    name: "Laura Sánchez",
+                    role: "UX Researcher",
+                    description: "Especialista en experiencia de usuario.",
+                    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&h=400&fit=crop"
+                },
+                {
+                    name: "Miguel Ángel",
+                    role: "Backend Dev",
+                    description: "Experto en bases de datos y APIs.",
+                    image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=400&h=400&fit=crop"
+                }
+             ];
+             const member = baseMembers[index % baseMembers.length]; // Repeat items
+             
+             return (
+            <div key={index} className="group flex flex-col items-center text-center">
               <div className="relative mb-6">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-gray-100 group-hover:border-primary/20 transition-all duration-300 shadow-sm group-hover:shadow-xl">
                   <img 
@@ -86,27 +153,19 @@ export default function AboutPage() {
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
-                <div className="absolute -bottom-2 right-4 bg-white p-2 rounded-full shadow-lg border border-gray-100 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
-                  <Link href={member.social.linkedin} className="text-gray-400 hover:text-blue-600 transition-colors">
-                    <Linkedin size={16} />
-                  </Link>
-                  <Link href={member.social.twitter} className="text-gray-400 hover:text-blue-400 transition-colors">
-                    <Twitter size={16} />
-                  </Link>
-                </div>
               </div>
               
               <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors">
-                {member.name}
+                {member.name} 
               </h3>
               <span className="text-xs font-bold uppercase tracking-wider text-accent mb-4">
                 {member.role}
               </span>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
                 {member.description}
               </p>
             </div>
-          ))}
+          )})}
         </div>
 
         {/* Values / Mission (Optional filler) */}

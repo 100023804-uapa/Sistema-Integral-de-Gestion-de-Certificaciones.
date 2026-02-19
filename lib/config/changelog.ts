@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.4.0";
+export const APP_VERSION = "0.5.0";
 
 export interface Release {
     version: string;
@@ -12,6 +12,18 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+    {
+        version: "0.5.0",
+        date: "2026-02-19",
+        title: "Integración de Correo y PDFs Estables",
+        description: "Implementación de envío de certificados por correo electrónico (Gmail) y solución definitiva a problemas de generación de PDF.",
+        details: [
+            { type: 'feature', text: 'Envío de Email: Envío real de certificados usando Gmail/Nodemailer.' },
+            { type: 'fix', text: 'Corrección PDF: Solución a PDFs en blanco asegurando carga de recursos.' },
+            { type: 'feature', text: 'Documentación: Guía de límites de recursos y estrategias de escalado (MVP).' },
+            { type: 'improvement', text: 'UI: Ajustes en botones de acción y feedback visual de carga.' }
+        ]
+    },
     {
         version: "0.4.0",
         date: "2026-02-19",

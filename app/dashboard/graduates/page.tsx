@@ -16,7 +16,7 @@ export default function GraduatesPage() {
           <p className="text-gray-500">Consulta la base de datos de estudiantes certificados.</p>
         </div>
         <button 
-          onClick={() => {}}
+          onClick={() => alert("Módulo de registro de estudiantes en desarrollo")}
           className="px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
         >
           <PlusCircle size={20} /> Nuevo Estudiante

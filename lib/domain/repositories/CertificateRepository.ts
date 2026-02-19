@@ -13,4 +13,5 @@ export interface ICertificateRepository {
   create(certificate: CreateCertificateDTO): Promise<Certificate>;
   updateStatus(id: string, status: Certificate['status']): Promise<void>;
   countByYearAndType(year: number, type: string): Promise<number>; // Para generar secuencia de folio
+  findAll(): Promise<Certificate[]>;
 }

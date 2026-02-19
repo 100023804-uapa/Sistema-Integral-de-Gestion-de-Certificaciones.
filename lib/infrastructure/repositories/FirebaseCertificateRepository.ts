@@ -85,6 +85,12 @@ export class FirebaseCertificateRepository implements ICertificateRepository {
         return querySnapshot.docs.map(doc => this.mapDocToEntity(doc));
     }
 
+    async findAll(): Promise<Certificate[]> {
+        const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => this.mapDocToEntity(doc));
+    }
+
     async updateStatus(id: string, status: Certificate['status']): Promise<void> {
         const docRef = doc(db, COLLECTION_NAME, id);
         await updateDoc(docRef, {

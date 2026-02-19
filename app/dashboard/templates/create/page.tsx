@@ -150,6 +150,15 @@ export default function CreateTemplatePage() {
   const handleElementDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('application/sigce-id', id);
     e.dataTransfer.effectAllowed = 'move';
+
+    // Calculate offset from top-left of the element
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+
+    e.dataTransfer.setData('application/sigce-offset-x', offsetX.toString());
+    e.dataTransfer.setData('application/sigce-offset-y', offsetY.toString());
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -167,17 +176,23 @@ export default function CreateTemplatePage() {
     
     if (canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        // Mouse position relative to canvas
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
         
         const type = e.dataTransfer.getData('application/sigce-type') as TemplateElementType;
         const existingId = e.dataTransfer.getData('application/sigce-id');
+        const offsetX = parseFloat(e.dataTransfer.getData('application/sigce-offset-x'));
+        const offsetY = parseFloat(e.dataTransfer.getData('application/sigce-offset-y'));
 
         if (type) {
             const content = e.dataTransfer.getData('application/sigce-content') || (type === 'qr' ? 'QR Code' : 'Texto');
-            addElement(type, content, x - 50, y - 20); // Center on pointer
+            addElement(type, content, mouseX - 50, mouseY - 20); // Center on pointer for new items
         } else if (existingId) {
-            updateElementPosition(existingId, x - 20, y - 10);
+            // Apply offset to keep element exactly under cursor
+            const newX = mouseX - (isNaN(offsetX) ? 0 : offsetX);
+            const newY = mouseY - (isNaN(offsetY) ? 0 : offsetY);
+            updateElementPosition(existingId, newX, newY);
             setSelectedElementId(existingId);
         }
     }

@@ -20,8 +20,11 @@ import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories
 import { Certificate } from '@/lib/domain/entities/Certificate';
 import { QRCodeSVG } from 'qrcode.react';
 
-export default function CertificateDetailsPage({ params }: { params: { id: string } }) {
+export default function CertificateDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  // Unwrap params using React.use() for Next.js 15+
+  const { id } = React.use(params);
+  
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +34,7 @@ export default function CertificateDetailsPage({ params }: { params: { id: strin
     const fetchCertificate = async () => {
       try {
         const repository = new FirebaseCertificateRepository();
-        const data = await repository.findById(params.id);
+        const data = await repository.findById(id);
         
         if (!data) {
             setError("Certificado no encontrado.");
@@ -47,8 +50,10 @@ export default function CertificateDetailsPage({ params }: { params: { id: strin
       }
     };
 
-    fetchCertificate();
-  }, [params.id]);
+    if (id) {
+        fetchCertificate();
+    }
+  }, [id]);
 
   if (loading) {
     return (

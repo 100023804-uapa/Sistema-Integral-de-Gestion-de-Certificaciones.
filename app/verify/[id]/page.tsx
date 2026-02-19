@@ -12,8 +12,21 @@ interface PageProps {
 
 export default async function CertificateDetailsPage({ params }: PageProps) {
   const { id } = await params;
+  if (!id) return notFound();
+
   const repository = new MockCertificateRepository();
-  const certificate = await repository.findById(id);
+  // Try finding by ID first
+  let certificate = await repository.findById(id);
+
+  // If not found, try finding by Folio (case insensitive check)
+  if (!certificate) {
+      certificate = await repository.findByFolio(id);
+      
+      // Fallback: Try uppercase if not found (e.g. sigce -> SIGCE)
+      if (!certificate) {
+          certificate = await repository.findByFolio(id.toUpperCase());
+      }
+  }
 
   if (!certificate) {
     return notFound();
@@ -50,7 +63,7 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
                 Ha completado satisfactoriamente los requisitos académicos del programa de educación continuada:
               </p>
               <h2 className="font-display text-xl md:text-2xl text-[var(--primary)] font-semibold px-4 leading-tight">
-                {certificate.courseName}
+                {certificate.academicProgram}
               </h2>
               <p className="text-xs text-gray-500 mt-4">
                 Otorgado en Santiago de los Caballeros, República Dominicana<br />

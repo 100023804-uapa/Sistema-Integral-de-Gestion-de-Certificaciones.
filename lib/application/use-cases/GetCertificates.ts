@@ -1,8 +1,8 @@
+import { ICertificateRepository } from '../../domain/repositories/CertificateRepository';
 import { Certificate } from '../../domain/entities/Certificate';
-import { CertificateRepository } from '../../domain/repositories/CertificateRepository';
 
 export class GetCertificates {
-  constructor(private certificateRepository: CertificateRepository) {}
+  constructor(private certificateRepository: ICertificateRepository) { }
 
   async execute(): Promise<Certificate[]> {
     return this.certificateRepository.findAll();

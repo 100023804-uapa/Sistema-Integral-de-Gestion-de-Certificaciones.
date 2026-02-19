@@ -1,4 +1,4 @@
-import { ICertificateRepository } from '../../domain/repositories/ICertificateRepository';
+import { ICertificateRepository } from '../../domain/repositories/CertificateRepository';
 import { GenerateFolio } from './GenerateFolio';
 import { Certificate, CertificateType, CertificateStatus, CreateCertificateDTO } from '../../domain/entities/Certificate';
 
@@ -38,7 +38,7 @@ export class CreateCertificate {
 
         // 3. Guardar en repositorio
         // Nota: El repositorio se encargará de añadir timestamps
-        const savedCertificate = await this.certificateRepository.save(certificateData);
+        const savedCertificate = await this.certificateRepository.create(certificateData);
 
         return savedCertificate;
     }

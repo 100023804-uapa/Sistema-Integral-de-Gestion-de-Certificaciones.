@@ -108,9 +108,9 @@ export default function CreateCertificatePage() {
             <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Folio Prefix Configuration */}
-            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-6">
-                <label className="block text-sm font-semibold text-blue-900 mb-2">
-                    Configuración de Folio (Prefijo)
+            <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <FileText size={16} /> Configuración de Folio (Prefijo)
                 </label>
                 <div className="flex items-center gap-2">
                     <input 
@@ -118,15 +118,15 @@ export default function CreateCertificatePage() {
                         name="folioPrefix"
                         value={formData.folioPrefix} 
                         onChange={handleChange}
-                        placeholder="Ej. SIGCE, UAPA, ETC"
-                        className="flex-1 w-full px-4 py-2.5 rounded-xl border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
+                        placeholder="Ej. SIGCE"
+                        className="flex-1 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all uppercase"
                     />
-                    <span className="text-gray-400 font-mono text-sm">
+                    <span className="text-gray-400 font-mono text-sm whitespace-nowrap">
                         - {new Date().getFullYear()} - {formData.type} - 0001
                     </span>
                 </div>
-                <p className="text-xs text-blue-600 mt-2">
-                    Personaliza la parte inicial del código único. El resto se genera automáticamente.
+                <p className="text-xs text-gray-500">
+                    Personaliza el identificador inicial. El resto se genera automáticamente.
                 </p>
             </div>
 

@@ -22,6 +22,7 @@ const menuItems = [
   { label: 'Programas', icon: GraduationCap, href: '/dashboard/programs' },
   { label: 'Plantillas', icon: LayoutTemplate, href: '/dashboard/templates' },
   { label: 'Participantes', icon: Users, href: '/dashboard/graduates' },
+  { label: 'Usuarios', icon: Users, href: '/dashboard/users' },
   { label: 'Configuración', icon: Settings, href: '/dashboard/settings' },
 ];
 

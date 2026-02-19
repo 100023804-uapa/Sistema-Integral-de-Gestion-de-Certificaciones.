@@ -78,10 +78,8 @@ export async function sendAdminRequestEmail({ email, name, reason }: SendAdminRe
     const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
     if (!user || !pass || !adminEmail) {
-      console.error('Missing env vars for email or admin email');
-      // Fallback or error?
-      if (!adminEmail) throw new Error('Admin email not configured');
-      throw new Error('Email credentials not configured');
+      console.warn('Missing email configuration. Request saved but email not sent.');
+      return { success: false, error: 'Email configuration missing' };
     }
 
     const transporter = nodemailer.createTransport({

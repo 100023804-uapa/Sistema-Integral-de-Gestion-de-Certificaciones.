@@ -7,6 +7,7 @@ import { ChevronLeft, Send, CheckCircle, AlertCircle, ShieldQuestion } from 'luc
 import Link from 'next/link';
 import { sendAdminRequestEmail } from '@/app/actions/send-email';
 import { Toaster, toast } from 'sonner';
+import { FirebaseAccessRepository } from '@/lib/infrastructure/repositories/FirebaseAccessRepository';
 
 export default function RequestAccessPage() {
   const [email, setEmail] = useState('');
@@ -20,16 +21,25 @@ export default function RequestAccessPage() {
     setLoading(true);
     
     try {
+        // 1. Guardar en Firestore (Persistencia Principal)
+        const accessRepo = new FirebaseAccessRepository();
+        await accessRepo.createAccessRequest({ email, name, reason });
+
+        // 2. Intentar notificar por correo
         const result = await sendAdminRequestEmail({ email, name, reason });
         
         if (result.success) {
             setSuccess(true);
             toast.success('Solicitud enviada correctamente');
         } else {
-            toast.error('Error al enviar la solicitud: ' + result.error);
+            // Éxito parcial: Se guardó en DB pero falló el email
+            console.warn('Email failed but request saved:', result.error);
+            setSuccess(true);
+            toast.success('Solicitud guardada. El administrador la verá en el panel.');
+            toast.warning('No se pudo enviar la notificación por correo.', { duration: 5000 });
         }
     } catch (error) {
-        toast.error('Error inesperado al enviar la solicitud');
+        toast.error('Error al procesar la solicitud. Intente nuevamente.');
         console.error(error);
     } finally {
         setLoading(false);

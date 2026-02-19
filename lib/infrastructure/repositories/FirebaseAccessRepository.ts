@@ -23,6 +23,18 @@ export interface AccessUser {
     updatedAt: Date | null;
 }
 
+export interface AccessRequest {
+    id: string;
+    email: string;
+    name: string;
+    reason: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: Date | null;
+    updatedAt?: Date | null;
+}
+
+const REQUESTS_COLLECTION = 'access_requests';
+
 export class FirebaseAccessRepository {
     private normalizeEmail(email: string): string {
         return email.trim().toLowerCase();
@@ -100,5 +112,69 @@ export class FirebaseAccessRepository {
     async removeAdmin(email: string): Promise<void> {
         const normalized = this.normalizeEmail(email);
         await deleteDoc(doc(db, COLLECTION_NAME, normalized));
+    }
+
+    // --- ACCESS REQUESTS ---
+
+    async createAccessRequest(data: { email: string; name: string; reason: string }): Promise<void> {
+        const normalized = this.normalizeEmail(data.email);
+        // Check if already requested
+        const existing = await getDoc(doc(db, REQUESTS_COLLECTION, normalized));
+        if (existing.exists()) {
+            // Update existing request
+            await setDoc(doc(db, REQUESTS_COLLECTION, normalized), {
+                ...data,
+                email: normalized,
+                status: 'pending',
+                updatedAt: serverTimestamp(),
+            }, { merge: true });
+            return;
+        }
+
+        await setDoc(doc(db, REQUESTS_COLLECTION, normalized), {
+            ...data,
+            email: normalized,
+            status: 'pending',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+    }
+
+    async listAccessRequests(): Promise<AccessRequest[]> {
+        const q = query(collection(db, REQUESTS_COLLECTION), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docSnap => {
+            const data = docSnap.data();
+            return {
+                id: docSnap.id,
+                email: data.email,
+                name: data.name,
+                reason: data.reason,
+                status: data.status,
+                createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null,
+            };
+        });
+    }
+
+    async approveRequest(requestId: string, actorId: string): Promise<void> {
+        // 1. Get Request
+        const reqRef = doc(db, REQUESTS_COLLECTION, requestId);
+        const reqSnap = await getDoc(reqRef);
+        if (!reqSnap.exists()) throw new Error('Request not found');
+
+        const data = reqSnap.data();
+
+        // 2. Create Access User (Admin)
+        await this.upsertAdmin(data.email, actorId);
+
+        // 3. Update Request Status
+        await setDoc(reqRef, { status: 'approved', updatedAt: serverTimestamp() }, { merge: true });
+    }
+
+    async rejectRequest(requestId: string): Promise<void> {
+        await setDoc(doc(db, REQUESTS_COLLECTION, requestId), {
+            status: 'rejected',
+            updatedAt: serverTimestamp()
+        }, { merge: true });
     }
 }

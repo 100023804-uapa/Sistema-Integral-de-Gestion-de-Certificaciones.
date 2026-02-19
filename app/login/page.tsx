@@ -285,6 +285,13 @@ export default function LoginPage() {
               <Link href="/request-access" className="font-medium text-primary hover:underline hover:text-orange-600 transition-colors">
                 solicita acceso aquí.
               </Link>
+              <br/>
+              <span className="opacity-80 mt-1 block">
+                ¿Ya fuiste aprobado? {' '}
+                <Link href="/register-admin" className="font-medium text-primary hover:underline hover:text-orange-600 transition-colors">
+                  Completa tu registro aquí.
+                </Link>
+              </span>
             </p>
           )}
         </form>

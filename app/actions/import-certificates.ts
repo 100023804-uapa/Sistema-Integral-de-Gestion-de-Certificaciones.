@@ -12,13 +12,15 @@ export type ImportResult = {
     total: number;
     success: number;
     errors: number;
-    details: string[];
+    skipped: number;
+    details: { type: 'error' | 'success' | 'info'; message: string }[];
 };
 
 export async function importCertificatesFromExcel(data: any[]): Promise<ImportResult> {
     let successCount = 0;
     let errorCount = 0;
-    const details: string[] = [];
+    let skippedCount = 0;
+    const details: { type: 'error' | 'success' | 'info'; message: string }[] = [];
 
     for (const row of data) {
         try {
@@ -58,7 +60,9 @@ export async function importCertificatesFromExcel(data: any[]): Promise<ImportRe
             if (row.Folio) {
                 const existingCert = await certificateRepo.findByFolio(String(row.Folio).trim());
                 if (existingCert) {
-                    throw new Error(`El folio ${row.Folio} ya existe. Omitido.`);
+                    skippedCount++;
+                    details.push({ type: 'info', message: `Matrícula ${row.Matricula}: El folio ${row.Folio} ya existe. Omitido.` });
+                    continue;
                 }
 
                 // 4. Crear Certificado
@@ -73,7 +77,7 @@ export async function importCertificatesFromExcel(data: any[]): Promise<ImportRe
 
                 if (isNaN(issueDate.getTime())) {
                     issueDate = new Date(); // Fallback
-                    details.push(`Advertencia: Fecha inválida para ${row.Folio}, usando fecha actual.`);
+                    details.push({ type: 'info', message: `Advertencia: Fecha inválida para ${row.Folio}, usando fecha actual.` });
                 }
 
                 const certData: CreateCertificateDTO = {
@@ -99,7 +103,7 @@ export async function importCertificatesFromExcel(data: any[]): Promise<ImportRe
 
         } catch (error: any) {
             errorCount++;
-            details.push(`Error en Matrícula ${row.Matricula || '?'}: ${error.message}`);
+            details.push({ type: 'error', message: `Error en Matrícula ${row.Matricula || '?'}: ${error.message}` });
         }
     }
 
@@ -107,6 +111,7 @@ export async function importCertificatesFromExcel(data: any[]): Promise<ImportRe
         total: data.length,
         success: successCount,
         errors: errorCount,
+        skipped: skippedCount,
         details
     };
 }

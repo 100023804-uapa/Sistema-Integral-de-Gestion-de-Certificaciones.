@@ -6,6 +6,7 @@ import { CheckCircle, Download, Share2, Calendar, Clock, Award } from 'lucide-re
 import { QRCodeSVG } from 'qrcode.react';
 import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
 import { notFound } from 'next/navigation';
+import { CertificateActions } from '@/components/certificates/CertificateActions';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -50,8 +51,14 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[var(--primary)]/10 to-transparent rounded-bl-full"></div>
             
             <div className="flex justify-center mb-6">
-               {/* Placeholder for Logo */}
-               <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs">Logo sigce</div>
+               {/* Logo */}
+               <div className="h-24 w-24 relative flex items-center justify-center">
+                  <img 
+                    src="/logo de la uapa.jpeg" 
+                    alt="Logo UAPA" 
+                    className="object-contain w-full h-full"
+                  />
+               </div>
             </div>
 
             <div className="space-y-6">
@@ -98,7 +105,7 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
               <div className="divide-y divide-gray-100">
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500">
                       <Calendar className="h-5 w-5" />
                     </div>
                     <div>
@@ -111,7 +118,7 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500">
                       <Clock className="h-5 w-5" />
                     </div>
                     <div>
@@ -122,7 +129,7 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500">
                       <Award className="h-5 w-5" />
                     </div>
                     <div>
@@ -136,30 +143,7 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
           </Card>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 sticky bottom-4 z-10">
-          {certificate.pdfUrl ? (
-              <a href={certificate.pdfUrl} target="_blank" rel="noopener noreferrer" className="w-full">
-                  <Button className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 h-12 text-base shadow-lg">
-                    <Download className="mr-2 h-5 w-5" />
-                    Descargar PDF Original
-                  </Button>
-              </a>
-          ) : (
-              <Button disabled className="w-full bg-gray-300 cursor-not-allowed h-12 text-base shadow-none text-gray-500">
-                <Download className="mr-2 h-5 w-5" />
-                PDF No Disponible
-              </Button>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="secondary" className="w-full">
-              <Share2 className="mr-2 h-4 w-4" />
-              Compartir
-            </Button>
-            <Button variant="secondary" className="w-full">
-              Enviar por Email
-            </Button>
-          </div>
-        </div>
+        <CertificateActions certificate={JSON.parse(JSON.stringify(certificate))} />
       </main>
       <Footer />
     </div>

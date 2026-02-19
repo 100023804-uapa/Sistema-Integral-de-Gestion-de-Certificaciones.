@@ -50,7 +50,7 @@ export default async function VerifyPage({ searchParams }: PageProps) {
                     placeholder="Matrícula o Folio..." 
                     className="w-full pl-12 pr-32 h-12 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent outline-none transition-all"
                 />
-                <Button type="submit" className="absolute right-1 top-1 bottom-1 bg-[var(--accent)] hover:bg-[#ff9000] text-white px-4 rounded-lg text-sm font-bold">
+                <Button type="submit" className="absolute right-1 top-1 bottom-1 px-6 rounded-lg text-sm font-bold shadow-lg shadow-orange-500/20">
                     Buscar
                 </Button>
             </form>

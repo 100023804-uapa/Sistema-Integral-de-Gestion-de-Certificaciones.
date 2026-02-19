@@ -36,7 +36,7 @@ export function SearchCertificatesForm() {
             <Button 
                 type="submit" 
                 disabled={loading}
-                className="h-full rounded-xl bg-[var(--color-accent)] hover:bg-[#ff9000] text-white font-bold px-6 shadow-md transition-all disabled:opacity-70 disabled:cursor-not-allowed hidden sm:flex items-center gap-2"
+                className="h-full rounded-xl px-6 font-bold shadow-lg shadow-orange-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed hidden sm:flex items-center gap-2"
             >
                 {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
                   <>
@@ -49,7 +49,7 @@ export function SearchCertificatesForm() {
             <Button 
                 type="submit" 
                 disabled={loading}
-                className="h-full rounded-xl bg-[var(--color-accent)] hover:bg-[#ff9000] text-white font-bold px-4 shadow-md transition-all disabled:opacity-70 disabled:cursor-not-allowed sm:hidden flex items-center justify-center"
+                className="h-full rounded-xl font-bold px-4 shadow-lg shadow-orange-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed sm:hidden flex items-center justify-center"
             >
                 {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <Search className="w-5 h-5" />}
             </Button>

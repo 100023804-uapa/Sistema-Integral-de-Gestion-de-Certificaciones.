@@ -43,10 +43,18 @@ export const generateCertificatePDF = async (certificate: Certificate, template?
                     align: el.style.align || 'left',
                     maxWidth: el.style.width
                 });
-            } else if (el.type === 'qr') {
                 const qrDataUrl = await QRCode.toDataURL(certificate.qrCodeUrl || `https://sigce.edu.do/verify/${certificate.folio}`);
                 const size = el.style.width || 30; // 30 units default
                 doc.addImage(qrDataUrl, 'PNG', el.position.x, el.position.y, size, size);
+            } else if (el.type === 'image') {
+                try {
+                    const img = await loadImage(el.content);
+                    const w = el.style.width || 40;
+                    const h = el.style.height || 40;
+                    doc.addImage(img, 'JPEG', el.position.x, el.position.y, w, h);
+                } catch (e) {
+                    console.error("Error loading template image element", e);
+                }
             }
         }
     } else {
@@ -80,13 +88,26 @@ const loadImage = (url: string): Promise<HTMLImageElement> => {
 
 const renderDefaultLayout = async (doc: jsPDF, cert: Certificate, w: number, h: number) => {
     // Simple Classic Design
+    // Simple Classic Design
+    try {
+        const logoUrl = '/logo de la uapa.jpeg';
+        const img = await loadImage(logoUrl);
+        // Centered logo at top
+        const logoWidth = 40;
+        const logoHeight = 40; // Assuming square or similar aspect ratio
+        const x = (w - logoWidth) / 2;
+        doc.addImage(img, 'JPEG', x, 20, logoWidth, logoHeight);
+    } catch (e) {
+        console.error("Error loading default logo", e);
+    }
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(30);
-    doc.text("CERTIFICADO DE RECONOCIMIENTO", w / 2, 60, { align: "center" });
+    doc.text("CERTIFICADO DE RECONOCIMIENTO", w / 2, 70, { align: "center" }); // Moved down slightly
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(16);
-    doc.text("Se otorga el presente a:", w / 2, 80, { align: "center" });
+    doc.text("Se otorga el presente a:", w / 2, 90, { align: "center" });
 
     doc.setFont("times", "bolditalic");
     doc.setFontSize(40);

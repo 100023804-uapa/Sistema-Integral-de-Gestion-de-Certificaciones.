@@ -170,29 +170,41 @@ export default function ImportCertificatesPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                     <div className="p-4 bg-gray-50 rounded-xl text-center">
                         <div className="text-3xl font-black text-gray-800">{result.total}</div>
                         <div className="text-sm font-medium text-gray-500">Total Leídos</div>
                     </div>
                     <div className="p-4 bg-green-50 rounded-xl text-center text-green-700">
                         <div className="text-3xl font-black">{result.success}</div>
-                        <div className="text-sm font-medium">Importados Exitosamente</div>
+                        <div className="text-sm font-medium">Importados</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-xl text-center text-blue-700">
+                        <div className="text-3xl font-black">{result.skipped}</div>
+                        <div className="text-sm font-medium">Omitidos (Duplicados)</div>
                     </div>
                     <div className="p-4 bg-red-50 rounded-xl text-center text-red-700">
                         <div className="text-3xl font-black">{result.errors}</div>
-                        <div className="text-sm font-medium">Errores / Omitidos</div>
+                        <div className="text-sm font-medium">Errores</div>
                     </div>
                 </div>
 
                 {result.details.length > 0 && (
                     <div className="bg-gray-50 p-4 rounded-xl max-h-60 overflow-y-auto">
                         <h4 className="font-bold text-gray-700 mb-2 text-sm opacity-70 uppercase tracking-wider">Detalles del Proceso</h4>
-                        <ul className="space-y-1 text-sm text-gray-600">
+                        <ul className="space-y-2 text-sm text-gray-600">
                             {result.details.map((msg, i) => (
-                                <li key={i} className="flex gap-2">
-                                    <span className="text-gray-400">•</span>
-                                    {msg}
+                                <li key={i} className={`flex gap-2 p-2 rounded-lg ${
+                                    msg.type === 'error' ? 'bg-red-50 text-red-700' : 
+                                    msg.type === 'info' ? 'bg-blue-50 text-blue-700' : 
+                                    'bg-green-50 text-green-700'
+                                }`}>
+                                    <span className="flex-shrink-0 mt-0.5">
+                                        {msg.type === 'error' ? <AlertCircle size={16} /> : 
+                                         msg.type === 'info' ? <CheckCircle size={16} className="text-blue-500" /> : 
+                                         <CheckCircle size={16} />}
+                                    </span>
+                                    {msg.message}
                                 </li>
                             ))}
                         </ul>

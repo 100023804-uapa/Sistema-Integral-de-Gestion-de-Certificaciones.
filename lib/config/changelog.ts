@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.2.0";
+export const APP_VERSION = "0.3.0";
 
 export interface Release {
     version: string;
@@ -12,6 +12,20 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+    {
+        version: "0.3.0",
+        date: "2026-02-19",
+        title: "Gestión Avanzada de Participantes y Consulta Pública",
+        description: "Implementación completa de la consulta pública de certificados, gestión manual de participantes y herramientas de carga masiva.",
+        details: [
+            { type: 'feature', text: 'Consulta Pública: Nueva pantalla de búsqueda de certificados por Matrícula o Folio.' },
+            { type: 'feature', text: 'Gestión de Participantes: Creación manual y edición de participantes.' },
+            { type: 'feature', text: 'Plantillas de Carga Masiva: Descarga de plantillas Excel personalizadas para participantes y certificados.' },
+            { type: 'improvement', text: 'Importación Inteligente: Detección automática de carga de certificados vs solo participantes.' },
+            { type: 'improvement', text: 'UI Login: Rediseño enfocado en la consulta pública.' },
+            { type: 'fix', text: 'Corrección en validación de tipos de usuario en login.' }
+        ]
+    },
     {
         version: "0.2.0",
         date: "2026-02-18",

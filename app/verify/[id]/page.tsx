@@ -3,6 +3,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { CheckCircle, Download, Share2, Calendar, Clock, Award } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
 import { notFound } from 'next/navigation';
 
@@ -76,8 +77,16 @@ export default async function CertificateDetailsPage({ params }: PageProps) {
                 <p className="text-[10px] text-gray-400 uppercase">ID del Certificado</p>
                 <p className="text-xs font-mono text-gray-600 font-medium">{certificate.id}</p>
               </div>
-              {/* QR Code Placeholder */}
-              <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center text-[10px] text-gray-400">QR</div>
+              {/* QR Code */}
+              <div className="bg-white p-1 rounded shadow-sm border border-gray-100">
+                  <QRCodeSVG 
+                    value={`${process.env.NEXT_PUBLIC_APP_URL || 'https://sigce.app'}/verify/${certificate.folio}`}
+                    size={64}
+                    level="H"
+                    includeMargin={false}
+                    fgColor="#000000"
+                  />
+              </div>
             </div>
           </div>
         </Card>

@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Search, Filter, Loader2, FileText, Calendar, User } from 'lucide-react';
+import { PlusCircle, Search, Filter, Loader2, FileText, Calendar, User, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
 import { Certificate } from '@/lib/domain/entities/Certificate';
 
@@ -37,12 +38,34 @@ export default function CertificatesPage() {
           <h1 className="text-3xl font-black text-primary tracking-tighter">Certificados</h1>
           <p className="text-gray-500">Gestiona y consulta el historial de emisiones.</p>
         </div>
-        <button 
-          onClick={() => router.push('/dashboard/certificates/create')}
-          className="px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
-        >
-          <PlusCircle size={20} /> Nuevo Certificado
-        </button>
+        <div className="flex gap-2">
+            <button 
+                onClick={() => {
+                    const ws = XLSX.utils.json_to_sheet([
+                        { Matricula: "2024-0001", Cedula: "402-1234567-8", Nombre: "Juan Perez", Email: "juan@ejemplo.com", Folio: "F-1234", Curso: "Software", Carrera: "Informática", Tipo: "CAP", Fecha: "2024-01-20" },
+                        { Matricula: "2024-0002", Cedula: "001-9876543-2", Nombre: "Maria Garcia", Email: "maria@ejemplo.com", Folio: "F-1235", Curso: "Redes", Carrera: "Telemática", Tipo: "PROFUNDO", Fecha: "2024-01-20" }
+                    ]);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
+                    XLSX.writeFile(wb, "Plantilla_Carga_SIGCE.xlsx");
+                }}
+                className="px-4 py-3 rounded-xl bg-green-50 text-green-700 font-bold border border-green-100 hover:bg-green-100 transition-colors flex items-center gap-2"
+            >
+                <FileSpreadsheet size={20} /> Plantilla
+            </button>
+            <button 
+                onClick={() => router.push('/dashboard/certificates/import')}
+                className="px-6 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-all flex items-center gap-2"
+            >
+                <FileText size={20} /> Importar Excel
+            </button>
+            <button 
+                onClick={() => router.push('/dashboard/certificates/create')}
+                className="px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
+            >
+                <PlusCircle size={20} /> Nuevo Certificado
+            </button>
+        </div>
       </div>
 
       {/* Filters & Search - Visual Only for now */}

@@ -1,0 +1,71 @@
+import { db } from '@/lib/firebase';
+import { collection, doc, getDoc, setDoc, getDocs, query, limit as firestoreLimit, orderBy, Timestamp } from 'firebase/firestore';
+import { IStudentRepository } from '../../domain/repositories/IStudentRepository';
+import { Student, CreateStudentDTO } from '../../domain/entities/Student';
+
+export class FirebaseStudentRepository implements IStudentRepository {
+    private collectionName = 'students';
+
+    async findById(id: string): Promise<Student | null> {
+        const docRef = doc(db, this.collectionName, id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            return this.mapDocToStudent(docSnap);
+        } else {
+            return null;
+        }
+    }
+
+    async create(student: CreateStudentDTO): Promise<Student> {
+        const docRef = doc(db, this.collectionName, student.id);
+        const now = new Date();
+
+        const newStudent: Student = {
+            ...student,
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        await setDoc(docRef, {
+            ...newStudent,
+            createdAt: Timestamp.fromDate(now),
+            updatedAt: Timestamp.fromDate(now),
+        });
+
+        return newStudent;
+    }
+
+    async update(id: string, data: Partial<Student>): Promise<void> {
+        const docRef = doc(db, this.collectionName, id);
+        await setDoc(docRef, {
+            ...data,
+            updatedAt: Timestamp.now(),
+        }, { merge: true });
+    }
+
+    async list(limitCount: number = 50): Promise<Student[]> {
+        const q = query(
+            collection(db, this.collectionName),
+            orderBy('createdAt', 'desc'),
+            firestoreLimit(limitCount)
+        );
+
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(this.mapDocToStudent);
+    }
+
+    private mapDocToStudent(doc: any): Student {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            phone: data.phone,
+            career: data.career,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+        };
+    }
+}

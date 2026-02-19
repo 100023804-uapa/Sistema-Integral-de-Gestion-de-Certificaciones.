@@ -20,7 +20,7 @@ const menuItems = [
   { label: 'Resumen', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Certificados', icon: FileText, href: '/dashboard/certificates' },
   { label: 'Plantillas', icon: LayoutTemplate, href: '/dashboard/templates' },
-  { label: 'Graduados', icon: Users, href: '/dashboard/graduates' },
+  { label: 'Participantes', icon: Users, href: '/dashboard/graduates' },
   { label: 'Configuración', icon: Settings, href: '/dashboard/settings' },
 ];
 

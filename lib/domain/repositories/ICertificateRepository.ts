@@ -6,4 +6,5 @@ export interface ICertificateRepository {
     findByFolio(folio: string): Promise<Certificate | null>;
     countByYearAndType(year: number, type: CertificateType): Promise<number>;
     list(limit?: number): Promise<Certificate[]>;
+    findByStudentId(studentId: string): Promise<Certificate[]>;
 }

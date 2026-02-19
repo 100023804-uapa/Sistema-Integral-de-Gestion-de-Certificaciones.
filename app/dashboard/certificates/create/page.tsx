@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, User, FileText, Calendar, Save, CheckCircle, AlertCircle } from 'lucide-react';
 import { FirebaseCertificateRepository } from '@/lib/infrastructure/repositories/FirebaseCertificateRepository';
+import { FirebaseStudentRepository } from '@/lib/infrastructure/repositories/FirebaseStudentRepository';
 import { GenerateFolio } from '@/lib/application/use-cases/GenerateFolio';
 import { CreateCertificate } from '@/lib/application/use-cases/CreateCertificate';
 import { CertificateType } from '@/lib/domain/entities/Certificate';
@@ -19,6 +20,7 @@ export default function CreateCertificatePage() {
   const [formData, setFormData] = useState({
     studentName: '',
     studentId: '',
+    cedula: '',
     academicProgram: '',
     type: 'CAP' as CertificateType,
     issueDate: new Date().toISOString().split('T')[0],
@@ -38,13 +40,18 @@ export default function CreateCertificatePage() {
     
     try {
         const repository = new FirebaseCertificateRepository();
+        const studentRepository = new FirebaseStudentRepository(); // Instanciar repo de estudiantes
         const generateFolio = new GenerateFolio(repository);
-        const createCertificate = new CreateCertificate(repository, generateFolio);
+        
+        // Inyectar studentRepository
+        const createCertificate = new CreateCertificate(repository, studentRepository, generateFolio);
 
         await createCertificate.execute({
             ...formData,
             issueDate: new Date(formData.issueDate),
-            prefix: formData.folioPrefix || undefined
+            prefix: formData.folioPrefix || undefined,
+            cedula: formData.cedula,
+            studentEmail: '' // Podríamos agregar campo email al form si se desea
         });
 
         setSuccess(true);
@@ -149,14 +156,29 @@ export default function CreateCertificatePage() {
 
                 <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <User size={16} /> ID / Matrícula (Opcional)
+                    <User size={16} /> Matrícula (Institucional)
                 </label>
                 <input 
                     name="studentId"
                     value={formData.studentId}
                     onChange={handleChange}
                     type="text" 
+                    required
                     placeholder="Ej. 2024-00123"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+                </div>
+
+                <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <User size={16} /> Cédula (Identidad)
+                </label>
+                <input 
+                    name="cedula"
+                    value={formData.cedula}
+                    onChange={handleChange}
+                    type="text" 
+                    placeholder="Ej. 402-1234567-8"
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
                 </div>

@@ -278,6 +278,15 @@ export default function LoginPage() {
             </Button>
           </div>
           )}
+
+          {role === 'admin' && (
+            <p className="text-center text-xs text-gray-500 mt-6 px-4 animate-in fade-in slide-in-from-bottom-3">
+              ¿No tienes cuenta? Para registrarte como administrador, <br/>
+              <Link href="/request-access" className="font-medium text-primary hover:underline hover:text-orange-600 transition-colors">
+                solicita acceso aquí.
+              </Link>
+            </p>
+          )}
         </form>
 
         {/* Footer */}

@@ -5,6 +5,12 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Search, ChevronRight, AlertCircle, Clock, FileCheck, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { consultCertificates } from '@/app/actions/consult-certificates';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Estado de Solicitud - SIGCE',
+  description: 'Consulta el estado de tus trámites y certificaciones en tiempo real.',
+};
 
 interface PageProps {
   searchParams: Promise<{ query?: string }>;

@@ -64,3 +64,67 @@ export async function sendCertificateEmail({ to, studentName, certificateUrl, fo
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
+
+interface SendAdminRequestParams {
+  email: string;
+  name: string;
+  reason: string;
+}
+
+export async function sendAdminRequestEmail({ email, name, reason }: SendAdminRequestParams) {
+  try {
+    const user = process.env.GMAIL_USER;
+    const pass = process.env.GMAIL_APP_PASSWORD;
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
+    if (!user || !pass || !adminEmail) {
+      console.error('Missing env vars for email or admin email');
+      // Fallback or error?
+      if (!adminEmail) throw new Error('Admin email not configured');
+      throw new Error('Email credentials not configured');
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user,
+        pass,
+      },
+    });
+
+    const mailOptions = {
+      from: `"SIGCE System" <${user}>`,
+      to: adminEmail,
+      subject: `Solicitud de Acceso Admin - SIGCE`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <h2 style="color: #003366;">Nueva Solicitud de Acceso</h2>
+          <p>Un usuario ha solicitado acceso administrativo al sistema.</p>
+          
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Nombre:</strong> ${name}</p>
+            <p><strong>Email Solicitante:</strong> ${email}</p>
+            <p><strong>Motivo/Departamento:</strong></p>
+            <p style="white-space: pre-wrap;">${reason}</p>
+          </div>
+
+          <p>Para otorgar acceso, por favor ve al Dashboard > Usuarios y agrega este correo manualmente.</p>
+          
+          <hr style="border: 1px solid #eee; margin: 30px 0;" />
+          <p style="font-size: 12px; color: #666;">
+            Sistema Integral de Gestión de Certificaciones (SIGCE)
+          </p>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Admin Request Email sent: ", info.messageId);
+
+    return { success: true, messageId: info.messageId };
+
+  } catch (error) {
+    console.error('SERVER ACTION ERROR (Admin Request):', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}

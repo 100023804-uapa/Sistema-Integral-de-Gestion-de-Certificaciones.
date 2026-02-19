@@ -1,5 +1,11 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { ArrowLeft, Linkedin, Mail, Twitter } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Sobre Nosotros - SIGCE',
+  description: 'Conoce al equipo de participantes de la pasantía febrero-abril 2026 detrás de SIGCE.',
+};
 
 const teamMembers = [
   {

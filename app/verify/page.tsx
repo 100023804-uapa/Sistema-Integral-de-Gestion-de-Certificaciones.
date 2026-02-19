@@ -5,6 +5,12 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Search, ChevronRight, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { consultCertificates } from '@/app/actions/consult-certificates';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Validar Certificado - SIGCE',
+  description: 'Verifica la autenticidad de certificados académicos mediante folio o matrícula.',
+};
 
 interface PageProps {
   searchParams: Promise<{ query?: string }>;
